@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Workspace
+   version = "1.0">
+   <FileRef
+      location = "group:Application/GoogleCloudPrint.xcodeproj">
+   </FileRef>
+   <Group
+      location = "container:"
+      name = "Tweak">
+      <Group
+         location = "group:Tweak/PrintKit"
+         name = "PrintKit">
+         <FileRef
+            location = "group:PKPrinter.h">
+         </FileRef>
+         <FileRef
+            location = "group:PKPrinterBrowser.h">
+         </FileRef>
+         <FileRef
+            location = "group:PKPrintSettings.h">
+         </FileRef>
+      </Group>
+      <FileRef
+         location = "group:Tweak/Makefile"
+         assignedFileDataType = "public.make-source">
+      </FileRef>
+      <FileRef
+         location = "group:Tweak/CloudPrintServiceDelegate.h">
+      </FileRef>
+      <FileRef
+         location = "group:Tweak/Tweak.xm"
+         assignedFileDataType = "public.objective-c-plus-plus-source">
+      </FileRef>
+      <FileRef
+         location = "group:Tweak/CloudPrintXPCBridge.h">
+      </FileRef>
+      <FileRef
+         location = "group:Tweak/CloudPrintXPCBridge.x"
+         assignedFileDataType = "public.objective-c-source">
+      </FileRef>
+      <FileRef
+         location = "group:Tweak/CPPrinterProxy.h">
+      </FileRef>
+      <FileRef
+         location = "group:Tweak/CPPrinterProxy.x"
+         assignedFileDataType = "public.objective-c-source">
+      </FileRef>
+      <FileRef
+         location = "group:Tweak/main.m">
+      </FileRef>
+   </Group>
+</Workspace>

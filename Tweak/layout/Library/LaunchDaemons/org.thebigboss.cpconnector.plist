@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>Label</key>
+	<string>org.thebigboss.cpconnector</string>
+	<key>MachServices</key>
+	<dict>
+		<key>org.thebigboss.cpconnector</key>
+		<true/>
+	</dict>
+	<key>ProgramArguments</key>
+	<array>
+        <string>/usr/libexec/cpconnectord</string>
+	</array>
+	<key>UserName</key>
+	<string>mobile</string>
+</dict>
+</plist>

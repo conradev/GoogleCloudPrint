@@ -1,0 +1,8 @@
+*.o
+*.deb
+*.dylib
+_
+obj
+.theos
+xcuserdata
+build

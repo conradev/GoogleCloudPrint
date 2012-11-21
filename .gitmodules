@@ -1,0 +1,6 @@
+[submodule "Theos"]
+	path = theos
+	url = git://github.com/DHowett/theos.git
+[submodule "AFIncrementalStore"]
+	path = Tweak/AFIncrementalStore/Submodule
+	url = git://github.com/AFNetworking/AFIncrementalStore.git
