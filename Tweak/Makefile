@@ -1,7 +1,7 @@
 include theos/makefiles/common.mk
 
 TWEAK_NAME = CloudPrintConnector
-CloudPrintConnector_FILES = Tweak.xm CPPrinterProxy.x
+CloudPrintConnector_FILES = PKPrinterBrowser.x CPPrinterProxy.x
 CloudPrintConnector_CFLAGS = -I.
 CloudPrintConnector_PRIVATE_FRAMEWORKS = PrintKit
 
