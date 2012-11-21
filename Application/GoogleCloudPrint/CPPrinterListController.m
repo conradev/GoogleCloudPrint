@@ -9,6 +9,7 @@
 #import "CPPrinterListController.h"
 
 #import "CPPrinter.h"
+#import "CPJob.h"
 
 @interface CPPrinterListController () <NSFetchedResultsControllerDelegate> {
     NSFetchedResultsController *_fetchedResultsController;
@@ -33,7 +34,7 @@
     fetchRequest.sortDescriptors = [NSArray arrayWithObject:[NSSortDescriptor sortDescriptorWithKey:@"name" ascending:NO]];
     fetchRequest.fetchLimit = 50;
     
-    //_fetchedResultsController = [[NSFetchedResultsController alloc] initWithFetchRequest:fetchRequest managedObjectContext:[(id)[[UIApplication sharedApplication] delegate] managedObjectContext] sectionNameKeyPath:nil cacheName:@"Printers"];
+    _fetchedResultsController = [[NSFetchedResultsController alloc] initWithFetchRequest:fetchRequest managedObjectContext:[(id)[[UIApplication sharedApplication] delegate] managedObjectContext] sectionNameKeyPath:nil cacheName:@"Printers"];
     _fetchedResultsController.delegate = self;
     
     [self refetchData];
@@ -76,6 +77,18 @@
 
 - (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath {
     [tableView deselectRowAtIndexPath:indexPath animated:YES];
+    
+    NSManagedObjectContext *context = _fetchedResultsController.managedObjectContext;
+    CPPrinter *printer = [_fetchedResultsController objectAtIndexPath:indexPath];
+    
+    NSString *filePath = [[NSBundle mainBundle] pathForResource:@"Test" ofType:@"pdf"];
+    CPJob *job = [NSEntityDescription insertNewObjectForEntityForName:@"Job" inManagedObjectContext:context];
+    job.title = @"This is a test!";
+    job.printer = printer;
+    job.fileData = [NSData dataWithContentsOfFile:filePath];
+    job.contentType = @"application/pdf";
+    
+    [context save:nil];
 }
 
 #pragma mark - NSFetchedResultsControllerDelegate

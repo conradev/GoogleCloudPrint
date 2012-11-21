@@ -22,39 +22,13 @@
 - (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions {
     
     // Set up persistent stores
-    _persistentStoreCoordinator = [[NSPersistentStoreCoordinator alloc] initWithManagedObjectModel:[CloudPrintIncrementalStore model]];
+    _persistentStoreCoordinator = [[NSPersistentStoreCoordinator alloc] initWithManagedObjectModel:self.managedObjectModel];
     CloudPrintIncrementalStore *incrementalStore = (CloudPrintIncrementalStore *)[_persistentStoreCoordinator addPersistentStoreWithType:[CloudPrintIncrementalStore type] configuration:nil URL:nil options:nil error:nil];
     [incrementalStore.backingPersistentStoreCoordinator addPersistentStoreWithType:NSInMemoryStoreType configuration:nil URL:nil options:nil error:nil];
     
     // Create managed context
     _managedObjectContext = [[NSManagedObjectContext alloc] initWithConcurrencyType:NSMainQueueConcurrencyType];
     [_managedObjectContext setPersistentStoreCoordinator:_persistentStoreCoordinator];
-    
-    [[NSNotificationCenter defaultCenter] addObserverForName:NSManagedObjectContextObjectsDidChangeNotification object:_managedObjectContext queue:nil usingBlock:^(NSNotification *note) {
-        NSSet *objects = note.userInfo[NSInsertedObjectsKey];
-        [objects enumerateObjectsUsingBlock:^(id obj, BOOL *stop) {
-            if ([obj isKindOfClass:[CPPrinter class]]) {
-                CPPrinter *printer = (CPPrinter *)obj;
-                
-                NSString *filePath = [[NSBundle mainBundle] pathForResource:@"Test" ofType:@"pdf"];
-                
-                if ([printer.printerID isEqualToString:@"__google__docs"]) {
-                    CPJob *job = [NSEntityDescription insertNewObjectForEntityForName:@"Job" inManagedObjectContext:_managedObjectContext];
-                    job.title = @"TESTICLES";
-                    job.printer = printer;
-                    job.fileData = [NSData dataWithContentsOfFile:filePath];
-                    job.contentType = @"application/pdf";
-                    
-                    [_managedObjectContext save:nil];
-                }
-            }
-        }];
-    }];
-    
-    NSFetchRequest *request = [[NSFetchRequest alloc] initWithEntityName:@"Printer"];
-    
-    NSArray *results = [_managedObjectContext executeFetchRequest:request error:nil];
-    NSLog(@"%@", [results valueForKey:@"name"]);
     
     CPPrinterListController *listController = [[CPPrinterListController alloc] init];
     
