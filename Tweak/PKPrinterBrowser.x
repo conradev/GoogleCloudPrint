@@ -7,8 +7,15 @@
 #import "CPPrinterProxy.h"
 
 @interface PKPrinterBrowser (CloudPrintConnector) <CloudPrintServiceDelegate>
-@property (retain, nonatomic, getter=__cloudprint_connection, setter=__cloudprint_set_connection:) NSXPCConnection *cloudprintConnection;
-@property (retain, nonatomic, getter=__cloudprint_printers, setter=__cloudprint_set_printers:) NSMutableDictionary *cloudprintPrinters;
+@property (strong, nonatomic, getter=__cloudprint_connection, setter=__cloudprint_set_connection:) NSXPCConnection *cloudprintConnection;
+@property (strong, nonatomic, getter=__cloudprint_printers, setter=__cloudprint_set_printers:) NSMutableDictionary *cloudprintPrinters;
+@end
+
+@interface CloudPrintServiceDelegateProxy : NSObject <CloudPrintServiceDelegate>
+@property (assign, nonatomic) id<CloudPrintServiceDelegate> realDelegate;
+@end
+@implementation CloudPrintServiceDelegateProxy
+- (id)forwardingTargetForSelector:(SEL)aSelector { return _realDelegate; }
 @end
 
 static char connectionKey;
@@ -17,23 +24,23 @@ static char printersKey;
 %hook PKPrinterBrowser
 
 %new(v@:@)
-- (void)__cloudprint_set_connection:(NSXPCConnection *)connection {
-    objc_setAssociatedObject(self, &connectionKey, connection, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+- (void)__cloudprint_set_connection:(id)object {
+    objc_setAssociatedObject(self, &connectionKey, object, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
 }
 
 %new(@@:)
 - (id)__cloudprint_connection {
-    return (NSXPCConnection *)objc_getAssociatedObject(self, &connectionKey);
+    return objc_getAssociatedObject(self, &connectionKey);
 }
 
 %new(v@:@)
-- (void)__cloudprint_set_printers:(NSMutableDictionary *)printers {
-    objc_setAssociatedObject(self, &printersKey, self, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+- (void)__cloudprint_set_printers:(id)object {
+    objc_setAssociatedObject(self, &printersKey, object, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
 }
 
 %new(@@:)
 - (id)__cloudprint_printers {
-    return (NSXPCConnection *)objc_getAssociatedObject(self, &printersKey);
+    return objc_getAssociatedObject(self, &printersKey);
 }
 
 - (id)initWithDelegate:(id)delegate {
@@ -43,12 +50,17 @@ static char printersKey;
         %c(CPPrinterProxy) = objc_getClass("CPPrinterProxy");
         NSSet *acceptableClasses = [NSSet setWithObjects:[NSSet class], %c(CPPrinterProxy), nil];
         
+        // This is to break a retain cycle
+        // `self` retains `connection` and `connection` retains `exportedObject`
+        CloudPrintServiceDelegateProxy *delegateProxy = [[CloudPrintServiceDelegateProxy alloc] init];
+        delegateProxy.realDelegate = self;
+        connection.exportedObject = delegateProxy;
+        
         NSXPCInterface *exportedInterface = [NSXPCInterface interfaceWithProtocol:@protocol(CloudPrintServiceDelegate)];
         [exportedInterface setClasses:acceptableClasses forSelector:@selector(cloudprintServiceInsertedPrinters:) argumentIndex:0 ofReply:NO];
         [exportedInterface setClasses:acceptableClasses forSelector:@selector(cloudprintServiceUpdatedPrinters:) argumentIndex:0 ofReply:NO];
         [exportedInterface setClasses:acceptableClasses forSelector:@selector(cloudprintServiceDeletedPrinters:) argumentIndex:0 ofReply:NO];
         connection.exportedInterface = exportedInterface;
-        connection.exportedObject = self;
 
         NSXPCInterface *remoteInterface = [NSXPCInterface interfaceWithProtocol:@protocol(CloudPrintService)];
         [remoteInterface setClasses:acceptableClasses forSelector:@selector(fetchPrintersWithReply:) argumentIndex:0 ofReply:YES];
@@ -56,7 +68,6 @@ static char printersKey;
         
         [connection resume];
         self.cloudprintConnection = connection;
-        NSLog(@"Connected to Cloud Print service! %@", connection);
         
         // Get remote object
         id<CloudPrintService> service = [connection remoteObjectProxy];
@@ -70,7 +81,6 @@ static char printersKey;
 
 - (void)dealloc {
     [self.cloudprintConnection invalidate];
-    NSLog(@"Disconnected from Cloud Print service! %@", self.cloudprintConnection);
     
     %orig;
 }

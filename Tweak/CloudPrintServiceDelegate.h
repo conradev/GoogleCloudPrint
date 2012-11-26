@@ -9,6 +9,7 @@
 #import <Foundation/Foundation.h>
 
 @protocol CloudPrintServiceDelegate <NSObject>
+@optional
 
 - (void)cloudprintServiceInsertedPrinters:(NSSet *)printers;
 

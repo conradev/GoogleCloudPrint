@@ -17,8 +17,10 @@
 
 @interface CloudPrintXPCBridge : NSObject <NSXPCListenerDelegate, CloudPrintService>
 
+@property (strong, readonly, nonatomic) NSManagedObjectContext *context;
+
 - (id)initWithManagedObjectContext:(NSManagedObjectContext *)context;
 
-@property (strong, readonly, nonatomic) NSManagedObjectContext *context;
+- (void)runWithListener:(NSXPCListener *)listener;
 
 @end

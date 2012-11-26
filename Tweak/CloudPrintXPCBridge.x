@@ -14,7 +14,9 @@
 #import "CPPrinter.h"
 #import "CPPrinterProxy.h"
 
-@interface CloudPrintXPCBridge ()
+@interface CloudPrintXPCBridge () {
+    BOOL justKeepSwimming;
+}
 @property (strong, nonatomic) NSMutableSet *connections;
 @end
 
@@ -39,10 +41,42 @@
 
 #pragma mark - NSXPCListenerDelegate
 
+- (void)runWithListener:(NSXPCListener *)listener {
+    listener.delegate = self;
+    
+    [listener resume];
+    
+    NSRunLoop *runLoop = [NSRunLoop currentRunLoop];
+    
+    // See http://lists.apple.com/archives/cocoa-dev/2003/Mar/msg01158.html
+    justKeepSwimming = YES;
+    while (justKeepSwimming) {
+        [runLoop runMode:NSDefaultRunLoopMode beforeDate:[runLoop limitDateForMode:NSDefaultRunLoopMode]];
+    }
+    
+    [listener invalidate];
+}
+
+- (void)stopListener {
+    justKeepSwimming = NO;
+    [[NSRunLoop currentRunLoop] performSelector:nil target:nil argument:nil order:0 modes:@[NSDefaultRunLoopMode]];
+}
+
+- (void)stopTimeout {
+    [NSObject cancelPreviousPerformRequestsWithTarget:self selector:@selector(stopListener) object:nil];
+}
+
+- (void)startTimeout {
+    [self performSelector:@selector(stopListener) withObject:nil afterDelay:60.0f];
+}
+
 - (BOOL)listener:(NSXPCListener *)listener shouldAcceptNewConnection:(NSXPCConnection *)newConnection {
     
-    NSSet *acceptableClasses = [NSSet setWithObjects:[NSSet class], %c(CPPrinterProxy), nil];
+    NSLog(@"Canceling any scheduled stops.");
+    [self performSelectorOnMainThread:@selector(stopTimeout) withObject:nil waitUntilDone:YES];
     
+    NSSet *acceptableClasses = [NSSet setWithObjects:[NSSet class], %c(CPPrinterProxy), nil];
+        
     NSXPCInterface *remoteInterface = [NSXPCInterface interfaceWithProtocol:@protocol(CloudPrintServiceDelegate)];
     [remoteInterface setClasses:acceptableClasses forSelector:@selector(cloudprintServiceInsertedPrinters:) argumentIndex:0 ofReply:NO];
     [remoteInterface setClasses:acceptableClasses forSelector:@selector(cloudprintServiceUpdatedPrinters:) argumentIndex:0 ofReply:NO];
@@ -54,15 +88,19 @@
     newConnection.exportedInterface = exportedInterface;
     newConnection.exportedObject = self;
 
-    __weak CloudPrintXPCBridge *weakSelf = self;
     __weak NSXPCConnection *weakConnection = newConnection;
     newConnection.invalidationHandler = ^() {
-        NSLog(@"Connection invalidated: %@", weakConnection);
-        [weakSelf.connections removeObject:weakConnection];
+        NSLog(@"Connection invalidated %@", weakConnection);
+        [self.connections removeObject:weakConnection];
+        
+        if (!self.connections.count) {
+            NSLog(@"No valid connections. Scheduling stop in one minute.");
+            [self performSelectorOnMainThread:@selector(startTimeout) withObject:nil waitUntilDone:YES];
+        }
     };
     
     [newConnection resume];
-    NSLog(@"Connection created: %@", newConnection);
+    NSLog(@"Connection created %@", newConnection);
     [self.connections addObject:newConnection];
 
     return YES;

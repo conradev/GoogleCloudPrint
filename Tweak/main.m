@@ -14,15 +14,14 @@ int main(int argc, char **argv, char **envp) {
     NSManagedObjectContext *managedObjectContext = [[NSManagedObjectContext alloc] initWithConcurrencyType:NSMainQueueConcurrencyType];
     [managedObjectContext setPersistentStoreCoordinator:persistentStoreCoordinator];
     
-    // Create bridge
+    NSLog(@"Service starting...");
+    
+    // Run listener
     CloudPrintXPCBridge *bridge = [[CloudPrintXPCBridge alloc] initWithManagedObjectContext:managedObjectContext];
-    
-    // Configure listener
     NSXPCListener *listener = [[NSXPCListener alloc] initWithMachServiceName:@"org.thebigboss.cpconnector"];
-    listener.delegate = bridge;
+    [bridge runWithListener:listener];
     
-    [listener resume];
-	[[NSRunLoop currentRunLoop] run];
-        
+    NSLog(@"Service stopping...");
+    
     return 0;
 }

@@ -28,7 +28,8 @@
          location = "group:Tweak/CloudPrintServiceDelegate.h">
       </FileRef>
       <FileRef
-         location = "group:Tweak/PKPrinterBrowser.x">
+         location = "group:Tweak/PKPrinterBrowser.x"
+         assignedFileDataType = "public.objective-c-source">
       </FileRef>
       <FileRef
          location = "group:Tweak/CloudPrintXPCBridge.h">
