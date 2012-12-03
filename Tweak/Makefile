@@ -11,6 +11,7 @@ cpconnectord_FILES = main.m CloudPrintAPIClient.m CloudPrintIncrementalStore.m C
 cpconnectord_CFLAGS = -fobjc-arc -I. -I./AFIncrementalStore/Submodule/AFIncrementalStore -I./AFNetworking/Submodule/AFNetworking
 cpconnectord_LDFLAGS = -lsubstrate
 cpconnectord_PRIVATE_FRAMEWORKS = PrintKit
+cpconnectord_FRAMEWORKS = Security
 cpconnectord_INSTALL_PATH = /usr/libexec
 
 include $(THEOS_MAKE_PATH)/tool.mk
