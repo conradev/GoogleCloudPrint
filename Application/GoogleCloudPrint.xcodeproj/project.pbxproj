@@ -26,6 +26,7 @@
 		D07044EF1633E6BB00E70206 /* CPAppDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = D07044EE1633E6BB00E70206 /* CPAppDelegate.m */; };
 		D07044F31633E7B800E70206 /* CPPrinterListController.m in Sources */ = {isa = PBXBuildFile; fileRef = D07044F21633E7B800E70206 /* CPPrinterListController.m */; };
 		D0A292661652DAC9009A38A0 /* Test.pdf in Resources */ = {isa = PBXBuildFile; fileRef = D0A292651652DAC9009A38A0 /* Test.pdf */; };
+		D0A44F18166ADA8F008DBC4F /* AFOAuth2Client.m in Sources */ = {isa = PBXBuildFile; fileRef = D0A44F17166ADA8F008DBC4F /* AFOAuth2Client.m */; };
 		D0C45C77164F39C600881C20 /* SystemConfiguration.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D0C45C76164F39C600881C20 /* SystemConfiguration.framework */; };
 		D0C45C79164F39CB00881C20 /* MobileCoreServices.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D0C45C78164F39CB00881C20 /* MobileCoreServices.framework */; };
 /* End PBXBuildFile section */
@@ -66,6 +67,8 @@
 		D07044F11633E7B800E70206 /* CPPrinterListController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CPPrinterListController.h; sourceTree = "<group>"; };
 		D07044F21633E7B800E70206 /* CPPrinterListController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = CPPrinterListController.m; sourceTree = "<group>"; };
 		D0A292651652DAC9009A38A0 /* Test.pdf */ = {isa = PBXFileReference; lastKnownFileType = image.pdf; path = Test.pdf; sourceTree = "<group>"; };
+		D0A44F16166ADA8F008DBC4F /* AFOAuth2Client.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = AFOAuth2Client.h; path = ../../Tweak/AFOAuth2Client/Submodule/AFOAuth2Client.h; sourceTree = "<group>"; };
+		D0A44F17166ADA8F008DBC4F /* AFOAuth2Client.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = AFOAuth2Client.m; path = ../../Tweak/AFOAuth2Client/Submodule/AFOAuth2Client.m; sourceTree = "<group>"; };
 		D0C45C76164F39C600881C20 /* SystemConfiguration.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SystemConfiguration.framework; path = System/Library/Frameworks/SystemConfiguration.framework; sourceTree = SDKROOT; };
 		D0C45C78164F39CB00881C20 /* MobileCoreServices.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = MobileCoreServices.framework; path = System/Library/Frameworks/MobileCoreServices.framework; sourceTree = SDKROOT; };
 /* End PBXFileReference section */
@@ -143,6 +146,8 @@
 		D07044A71633DCB000E70206 /* AFNetworking */ = {
 			isa = PBXGroup;
 			children = (
+				D0A44F16166ADA8F008DBC4F /* AFOAuth2Client.h */,
+				D0A44F17166ADA8F008DBC4F /* AFOAuth2Client.m */,
 				D0124C14165B0E020025542B /* AFIncrementalStore.h */,
 				D0124C15165B0E030025542B /* AFIncrementalStore.m */,
 				D0124C16165B0E030025542B /* AFRESTClient.h */,
@@ -263,6 +268,7 @@
 				D0124C35165B0E7D0025542B /* CloudPrintIncrementalStore.m in Sources */,
 				D0124C36165B0E7D0025542B /* CPJob.m in Sources */,
 				D0124C37165B0E7D0025542B /* CPPrinter.m in Sources */,
+				D0A44F18166ADA8F008DBC4F /* AFOAuth2Client.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

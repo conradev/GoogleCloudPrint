@@ -4,3 +4,6 @@
 [submodule "AFIncrementalStore"]
 	path = Tweak/AFIncrementalStore/Submodule
 	url = git://github.com/AFNetworking/AFIncrementalStore.git
+[submodule "AFOAuth2Client"]
+	path = Tweak/AFOAuth2Client/Submodule
+	url = git://github.com/conradev/AFOAuth2Client.git

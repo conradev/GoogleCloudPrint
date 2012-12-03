@@ -6,7 +6,7 @@ CloudPrintConnector_CFLAGS = -I.
 CloudPrintConnector_PRIVATE_FRAMEWORKS = PrintKit
 
 TOOL_NAME = cpconnectord
-cpconnectord_SUBPROJECTS = AFNetworking AFIncrementalStore
+cpconnectord_SUBPROJECTS = AFNetworking AFIncrementalStore AFOAuth2Client
 cpconnectord_FILES = main.m CloudPrintAPIClient.m CloudPrintIncrementalStore.m CloudPrintXPCBridge.x CPPrinterProxy.x CPJob.m CPPrinter.m
 cpconnectord_CFLAGS = -fobjc-arc -I. -I./AFIncrementalStore/Submodule/AFIncrementalStore -I./AFNetworking/Submodule/AFNetworking
 cpconnectord_LDFLAGS = -lsubstrate
