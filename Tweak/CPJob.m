@@ -21,7 +21,6 @@
 @dynamic printer;
 
 @dynamic created;
-@dynamic updated;
 
 @synthesize fileData = _fileData;
 @synthesize fileName = _fileName;

@@ -39,23 +39,18 @@ static NSManagedObjectModel *_managedObjectModel;
         [jobEntity setManagedObjectClassName:@"CPJob"];
         
         // Configure relationships
-        
         NSRelationshipDescription *jobsRelationship = [[NSRelationshipDescription alloc] init];
-        [jobsRelationship setName:@"jobs"];
-        [jobsRelationship setDestinationEntity:jobEntity];
-        [jobsRelationship setMaxCount:-1];
-        
         NSRelationshipDescription *printerRelationship = [[NSRelationshipDescription alloc] init];
-        [printerRelationship setName:@"printer"];
-        [printerRelationship setDestinationEntity:printerEntity];
-        [printerRelationship setMinCount:1];
-        [printerRelationship setMaxCount:1];
-        
         [printerRelationship setInverseRelationship:jobsRelationship];
         [jobsRelationship setInverseRelationship:printerRelationship];
         
         // Configure printer attributes
-        {
+        if (printerEntity) {
+            [printerRelationship setName:@"printer"];
+            [printerRelationship setDestinationEntity:printerEntity];
+            [printerRelationship setMinCount:1];
+            [printerRelationship setMaxCount:1];
+
             NSAttributeDescription *idAttribute = [[NSAttributeDescription alloc] init];
             [idAttribute setName:@"printerID"];
             [idAttribute setAttributeType:NSStringAttributeType];
@@ -89,7 +84,11 @@ static NSManagedObjectModel *_managedObjectModel;
         }
         
         // Configure job attributes
-        {
+        if (jobEntity) {
+            [jobsRelationship setName:@"jobs"];
+            [jobsRelationship setDestinationEntity:jobEntity];
+            [jobsRelationship setMaxCount:-1];
+
             NSAttributeDescription *idAttribute = [[NSAttributeDescription alloc] init];
             [idAttribute setName:@"jobID"];
             [idAttribute setAttributeType:NSStringAttributeType];
@@ -115,11 +114,7 @@ static NSManagedObjectModel *_managedObjectModel;
             [createdAttribute setName:@"created"];
             [createdAttribute setAttributeType:NSDateAttributeType];
             
-            NSAttributeDescription *updatedAttribute = [[NSAttributeDescription alloc] init];
-            [updatedAttribute setName:@"updated"];
-            [updatedAttribute setAttributeType:NSDateAttributeType];
-            
-            [jobEntity setProperties:@[ printerRelationship, idAttribute, titleAttribute, contentTypeAttribute, statusAttribute, messageAttribute, createdAttribute /*, updatedAttribute */]];
+            [jobEntity setProperties:@[ printerRelationship, idAttribute, titleAttribute, contentTypeAttribute, statusAttribute, messageAttribute, createdAttribute ]];
         }
         
         [_managedObjectModel setEntities:@[ printerEntity, jobEntity ]];

@@ -32,9 +32,7 @@ typedef enum {
 @property (nonatomic, retain) CPPrinter *printer;
 
 @property (nonatomic, retain) NSDate *created;
-@property (nonatomic, retain) NSDate *updated;
 
-// NOT in Core Data
 @property (strong, nonatomic) NSData *fileData;
 @property (strong, nonatomic) NSString *fileName;
 

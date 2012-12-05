@@ -64,7 +64,7 @@ static NSString * const CloudPrintAPIBaseURLString = @"https://www.google.com/cl
         self.authClient = [GoogleOAuth2Client clientWithClientID:@"485131505528.apps.googleusercontent.com" secret:@"k06D1ob6iELWL1WB0UviAKXX"];
         self.credential = [AFOAuthCredential retrieveCredentialWithIdentifier:self.authClient.serviceProviderIdentifier];
         
-        // Monitor operation queues to automatically maintain dependencies
+        // Monitor operation queues to automagically maintain dependencies
         [self.operationQueue addObserver:self forKeyPath:@"operations" options:NSKeyValueObservingOptionNew context:nil];
         [self.authClient.operationQueue addObserver:self forKeyPath:@"operations" options:NSKeyValueObservingOptionNew context:nil];
     }
@@ -77,27 +77,13 @@ static NSString * const CloudPrintAPIBaseURLString = @"https://www.google.com/cl
     [self.operationQueue removeObserver:self forKeyPath:@"operations"];
 }
 
-#pragma mark - Authorization
+#pragma mark - Authorization (API Client)
 
 - (void)observeValueForKeyPath:(NSString *)keyPath ofObject:(id)object change:(NSDictionary *)change context:(void *)context {
     if ([keyPath isEqualToString:@"operations"]) {
         // Automagically refresh an expired credential
         if ([object isEqual:self.operationQueue] && self.credential.expired && self.authClient.operationQueue.operationCount == 0) {
-            [self.authClient authenticateUsingOAuthWithPath:@"token" refreshToken:self.credential.refreshToken success:^(AFOAuthCredential *credential) {
-                self.credential = credential;
-
-                NSLog(@"Successfully refreshed credential");
-
-                // Refresh authorization header in already queued operations
-                [self.operationQueue.operations enumerateObjectsUsingBlock:^(NSOperation *operation, NSUInteger idx, BOOL *stop) {
-                    if ([operation isKindOfClass:[AFURLConnectionOperation class]]) {
-                        [(AFURLConnectionOperation *)operation setValueForAuthorizationHeader:[self defaultValueForHeader:@"Authorization"]];
-                    }
-                }];
-
-            } failure:^(NSError *error) {
-                NSLog(@"Unable to refresh credential (%@)", error.userInfo[NSLocalizedDescriptionKey]);
-            }];
+            [self refreshCredentialWithSuccess:nil failure:nil];
         }
 
         NSArray *operations = self.operationQueue.operations;
@@ -114,8 +100,17 @@ static NSString * const CloudPrintAPIBaseURLString = @"https://www.google.com/cl
 
 - (void)setCredential:(AFOAuthCredential *)credential {
     _credential = credential;
+
+    // Store updated credential in keychain
     [AFOAuthCredential storeCredential:_credential withIdentifier:self.authClient.serviceProviderIdentifier];
+
+    // Refresh authorization header in already queued operations
     [self setAuthorizationHeaderWithCredential:_credential];
+    [self.operationQueue.operations enumerateObjectsUsingBlock:^(NSOperation *operation, NSUInteger idx, BOOL *stop) {
+        if ([operation isKindOfClass:[AFURLConnectionOperation class]]) {
+            [(AFURLConnectionOperation *)operation setValueForAuthorizationHeader:[self defaultValueForHeader:@"Authorization"]];
+        }
+    }];
 }
 
 // Borrowed from AFOAuth2Client
@@ -130,12 +125,81 @@ static NSString * const CloudPrintAPIBaseURLString = @"https://www.google.com/cl
     }
 }
 
+#pragma mark - Authorization (OAuth2 Client)
+
+- (void)refreshCredentialWithSuccess:(void (^)(AFOAuthCredential *))success
+                             failure:(void (^)(NSError *))failure
+{
+    void (^wrappedSuccess)(AFOAuthCredential *) = ^(AFOAuthCredential *credential) {
+        NSLog(@"Successfully refreshed credential");
+        self.credential = credential;
+
+        if (success) {
+            success(self.credential);
+        }
+    };
+
+    void (^wrappedFailure)(NSError *) = ^(NSError *error) {
+        NSLog(@"Unable to refresh credential (%@)", [error localizedDescription]);
+        if (failure) {
+            failure(error);
+        }
+    };
+
+    [self.authClient refreshCredential:self.credential success:wrappedSuccess failure:wrappedFailure];
+}
+
+- (void)verifyCredentialWithSuccess:(void (^)(AFOAuthCredential *))success
+                            failure:(void (^)(NSError *))failure
+{
+    void (^wrappedSuccess)(AFOAuthCredential *) = ^(AFOAuthCredential *credential) {
+        NSLog(@"Successfully verified credential");
+
+        if (success) {
+            success(self.credential);
+        }
+    };
+
+    void (^wrappedFailure)(NSError *) = ^(NSError *error) {
+        NSLog(@"Unable to verify credential (%@)", [error localizedDescription]);
+        if (failure) {
+            failure(error);
+        }
+    };
+
+    [self.authClient verifyCredential:self.credential againstRepresentation:nil success:wrappedSuccess failure:wrappedFailure];
+}
+
+- (void)authenticateWithCode:(NSString *)code
+                 redirectURI:(NSString *)uri
+                     success:(void (^)(AFOAuthCredential *))success
+                     failure:(void (^)(NSError *))failure
+{
+    void (^wrappedSuccess)(AFOAuthCredential *) = ^(AFOAuthCredential *credential) {
+        NSLog(@"Successfully exchanged code for credential");
+        self.credential = credential;
+
+        if (success) {
+            success(self.credential);
+        }
+    };
+
+    void (^wrappedFailure)(NSError *) = ^(NSError *error) {
+        NSLog(@"Unable to exchange code for credential (%@)", [error localizedDescription]);
+        if (failure) {
+            failure(error);
+        }
+    };
+
+    [self.authClient authenticateUsingOAuthWithCode:code redirectURI:uri success:wrappedSuccess failure:wrappedFailure];
+}
+
 #pragma mark - Executing Requests
 
 - (AFHTTPRequestOperation *)HTTPRequestOperationWithRequest:(NSURLRequest *)urlRequest success:(void (^)(AFHTTPRequestOperation *, id))success failure:(void (^)(AFHTTPRequestOperation *, NSError *))failure {
     void (^wrappedSuccess)(AFHTTPRequestOperation *, id) = ^(AFHTTPRequestOperation *operation, id responseObject) {
         if ([responseObject[@"success"] isEqualToNumber:@NO]) {
-            NSError *error = [NSError errorWithDomain:AFNetworkingErrorDomain code:0 userInfo:@{ NSLocalizedDescriptionKey : responseObject[@"message"] }];
+            NSError *error = [NSError errorWithDomain:AFNetworkingErrorDomain code:NSURLErrorUnknown userInfo:@{ NSLocalizedDescriptionKey : responseObject[@"message"] }];
             failure(operation, error);
         } else {
             success(operation, responseObject);
@@ -166,9 +230,7 @@ static NSString * const CloudPrintAPIBaseURLString = @"https://www.google.com/cl
             representation = [printers objectAtIndex:0];
         }
     } else if ([entity.name isEqualToString:@"Job"]) {
-        if (representation[@"job"]) {
-            representation = representation[@"job"];
-        }
+        representation = representation[@"job"] ?: representation;
     }
     
     return representation;
