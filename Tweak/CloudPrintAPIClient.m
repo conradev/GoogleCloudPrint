@@ -85,16 +85,21 @@ static NSString * const CloudPrintAPIBaseURLString = @"https://www.google.com/cl
         if ([object isEqual:self.operationQueue] && self.credential.expired && self.authClient.operationQueue.operationCount == 0) {
             [self refreshCredentialWithSuccess:nil failure:nil];
         }
-
+        
         NSArray *operations = self.operationQueue.operations;
         NSArray *authOperations = self.authClient.operationQueue.operations;
 
         // Make all operations in API client queue dependent on ones in auth client queue, automagically
         [operations enumerateObjectsUsingBlock:^(NSOperation *operation, NSUInteger idx, BOOL *stop) {
             [authOperations enumerateObjectsUsingBlock:^(NSOperation *authOperation, NSUInteger idx, BOOL *stop) {
+                NSLog(@"Made operaton %@ dependent", operation);
                 [operation addDependency:authOperation];
             }];
         }];
+        
+        if ([object isEqual:self.authClient.operationQueue]) {
+            self.operationQueue.suspended = NO;
+        }
     }
 }
 
@@ -147,6 +152,8 @@ static NSString * const CloudPrintAPIBaseURLString = @"https://www.google.com/cl
     };
 
     [self.authClient refreshCredential:self.credential success:wrappedSuccess failure:wrappedFailure];
+    
+    self.operationQueue.suspended = YES;
 }
 
 - (void)verifyCredentialWithSuccess:(void (^)(AFOAuthCredential *))success
@@ -168,6 +175,8 @@ static NSString * const CloudPrintAPIBaseURLString = @"https://www.google.com/cl
     };
 
     [self.authClient verifyCredential:self.credential againstRepresentation:nil success:wrappedSuccess failure:wrappedFailure];
+    
+    self.operationQueue.suspended = YES;
 }
 
 - (void)authenticateWithCode:(NSString *)code
@@ -192,6 +201,8 @@ static NSString * const CloudPrintAPIBaseURLString = @"https://www.google.com/cl
     };
 
     [self.authClient authenticateUsingOAuthWithCode:code redirectURI:uri success:wrappedSuccess failure:wrappedFailure];
+    
+    self.operationQueue.suspended = YES;
 }
 
 #pragma mark - Executing Requests
