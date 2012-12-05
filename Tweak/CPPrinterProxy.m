@@ -24,6 +24,25 @@
 
 @implementation CPPrinterProxy
 
+- (id)initWithPrinter:(CPPrinter *)printer {
+    if ((self = [self initWithName:printer.name TXTRecord:nil])) {
+        self.cloudprintID = printer.printerID;
+        self.cloudprintDisplayName = printer.displayName;
+        self.cloudprintDescription = printer.printerDescription;
+    }
+
+    return self;
+}
+
+- (void)dealloc {
+#if ! __has_feature(objc_arc)
+    self.cloudprintID = nil;
+    self.cloudprintDisplayName = nil;
+    self.cloudprintDescription = nil;
+    [super dealloc];
+#endif
+}
+
 #pragma mark - NSSecureCoding
 
 + (BOOL)supportsSecureCoding {
@@ -46,27 +65,6 @@
     [encoder encodeObject:self.cloudprintDisplayName forKey:@"displayName"];
     [encoder encodeObject:self.cloudprintDescription forKey:@"cloudprintDescription"];
     [encoder encodeObject:self.cloudprintID forKey:@"cloudprintID"];
-}
-
-#pragma mark External Interface
-
-- (id)initWithPrinter:(CPPrinter *)printer {
-    if ((self = [self initWithName:printer.name TXTRecord:nil])) {
-        self.cloudprintID = printer.printerID;
-        self.cloudprintDisplayName = printer.displayName;
-        self.cloudprintDescription = printer.printerDescription;
-    }
-
-    return self;
-}
-
-- (void)dealloc {
-#if ! __has_feature(objc_arc)
-    self.cloudprintID = nil;
-    self.cloudprintDisplayName = nil;
-    self.cloudprintDescription = nil;
-    [super dealloc];
-#endif
 }
 
 #pragma mark - Overridden property values

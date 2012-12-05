@@ -1,5 +1,5 @@
 //
-//  CloudPrintXPCBridge.x
+//  CloudPrintXPCBridge.m
 //  GoogleCloudPrint
 //
 //  Created by Conrad Kramer on 10/21/12.
@@ -37,7 +37,7 @@
     [[NSNotificationCenter defaultCenter] removeObserver:self name:NSManagedObjectContextObjectsDidChangeNotification object:_context];
 }
 
-#pragma mark - NSXPCListenerDelegate
+#pragma mark - NSRunLoop
 
 - (void)runWithListener:(NSXPCListener *)listener {
     listener.delegate = self;
@@ -67,6 +67,8 @@
 - (void)startTimeout {
     [self performSelector:@selector(stopListener) withObject:nil afterDelay:60.0f];
 }
+
+#pragma mark - NSXPCListenerDelegate
 
 - (BOOL)listener:(NSXPCListener *)listener shouldAcceptNewConnection:(NSXPCConnection *)newConnection {
 

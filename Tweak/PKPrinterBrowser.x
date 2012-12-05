@@ -7,17 +7,12 @@
 //
 
 #import <Foundation/NSXPCConnection.h>
-#import <PrintKit/PKPrinterBrowser.h>
 
+#import <PrintKit/PKPrinterBrowser.h>
 #import "CloudPrintServiceDelegate.h"
 
 #import "CloudPrintXPCBridge.h"
 #import "CPPrinterProxy.h"
-
-@interface PKPrinterBrowser (CloudPrintConnector) <CloudPrintServiceDelegate>
-@property (strong, nonatomic, getter=__cloudprint_connection, setter=__cloudprint_set_connection:) NSXPCConnection *cloudprintConnection;
-@property (strong, nonatomic, getter=__cloudprint_printers, setter=__cloudprint_set_printers:) NSMutableDictionary *cloudprintPrinters;
-@end
 
 @interface CloudPrintServiceDelegateProxy : NSObject <CloudPrintServiceDelegate>
 @property (assign, nonatomic) id<CloudPrintServiceDelegate> realDelegate;
@@ -26,37 +21,22 @@
 - (id)forwardingTargetForSelector:(SEL)aSelector { return _realDelegate; }
 @end
 
-static char connectionKey;
-static char printersKey;
+@interface PKPrinterBrowser (CloudPrintConnector) <CloudPrintServiceDelegate>
+@property (strong, nonatomic, getter=__cloudprint_connection, setter=__cloudprint_set_connection:) NSXPCConnection *cloudprintConnection;
+@property (strong, nonatomic, getter=__cloudprint_printers, setter=__cloudprint_set_printers:) NSMutableDictionary *cloudprintPrinters;
+@end
+
+static char connectionKey, printersKey;
+
+%config(generator=internal);
 
 %hook PKPrinterBrowser
-
-%new(v@:@)
-- (void)__cloudprint_set_connection:(id)object {
-    objc_setAssociatedObject(self, &connectionKey, object, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
-}
-
-%new(@@:)
-- (id)__cloudprint_connection {
-    return objc_getAssociatedObject(self, &connectionKey);
-}
-
-%new(v@:@)
-- (void)__cloudprint_set_printers:(id)object {
-    objc_setAssociatedObject(self, &printersKey, object, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
-}
-
-%new(@@:)
-- (id)__cloudprint_printers {
-    return objc_getAssociatedObject(self, &printersKey);
-}
 
 - (id)initWithDelegate:(id)delegate {
     if ((self = %orig)) {
         NSXPCConnection *connection = [[NSXPCConnection alloc] initWithMachServiceName:@"org.thebigboss.cpconnector" options:0x0];
         
-        %c(CPPrinterProxy) = objc_getClass("CPPrinterProxy");
-        NSSet *acceptableClasses = [NSSet setWithObjects:[NSSet class], %c(CPPrinterProxy), nil];
+        NSSet *acceptableClasses = [NSSet setWithObjects:[NSSet class], [CPPrinterProxy class], nil];
         
         // This is to break a retain cycle
         // `self` retains `connection` and `connection` retains `exportedObject`
@@ -93,6 +73,30 @@ static char printersKey;
     %orig;
 }
 
+#pragma mark - Properties
+
+%new(v@:@)
+- (void)__cloudprint_set_connection:(id)object {
+    objc_setAssociatedObject(self, &connectionKey, object, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+}
+
+%new(@@:)
+- (id)__cloudprint_connection {
+    return objc_getAssociatedObject(self, &connectionKey);
+}
+
+%new(v@:@)
+- (void)__cloudprint_set_printers:(id)object {
+    objc_setAssociatedObject(self, &printersKey, object, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+}
+
+%new(@@:)
+- (id)__cloudprint_printers {
+    return objc_getAssociatedObject(self, &printersKey);
+}
+
+#pragma mark - Overridden property values
+
 - (NSMutableDictionary *)printers {
     NSMutableDictionary *orig = %orig;
     
@@ -101,6 +105,8 @@ static char printersKey;
     
     return combined;
 }
+
+#pragma mark - CloudPrintServiceDelegate
 
 %new(v@:@)
 - (void)cloudprintServiceInsertedPrinters:(NSSet *)printers {
@@ -139,3 +145,9 @@ static char printersKey;
 }
 
 %end
+
+%ctor {
+    %init;
+
+    class_addProtocol(%c(PKPrinterBrowser), @protocol(CloudPrintServiceDelegate));
+}
