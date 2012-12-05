@@ -35,14 +35,14 @@
          location = "group:Tweak/CloudPrintXPCBridge.h">
       </FileRef>
       <FileRef
-         location = "group:Tweak/CloudPrintXPCBridge.x"
+         location = "group:Tweak/CloudPrintXPCBridge.m"
          assignedFileDataType = "public.objective-c-source">
       </FileRef>
       <FileRef
          location = "group:Tweak/CPPrinterProxy.h">
       </FileRef>
       <FileRef
-         location = "group:Tweak/CPPrinterProxy.x"
+         location = "group:Tweak/CPPrinterProxy.m"
          assignedFileDataType = "public.objective-c-source">
       </FileRef>
       <FileRef

@@ -1,17 +1,16 @@
 include theos/makefiles/common.mk
 
 TWEAK_NAME = CloudPrintConnector
-CloudPrintConnector_FILES = PKPrinterBrowser.x CPPrinterProxy.x
+CloudPrintConnector_FILES = PKPrinterBrowser.x CPPrinterProxy.m
 CloudPrintConnector_CFLAGS = -I.
 CloudPrintConnector_PRIVATE_FRAMEWORKS = PrintKit
 
 TOOL_NAME = cpconnectord
 cpconnectord_SUBPROJECTS = AFNetworking AFIncrementalStore AFOAuth2Client
-cpconnectord_FILES = main.m CloudPrintAPIClient.m CloudPrintIncrementalStore.m CloudPrintXPCBridge.x CPPrinterProxy.x CPJob.m CPPrinter.m
-cpconnectord_CFLAGS = -fobjc-arc -I. -I./AFIncrementalStore/Submodule/AFIncrementalStore -I./AFNetworking/Submodule/AFNetworking
-cpconnectord_LDFLAGS = -lsubstrate
-cpconnectord_PRIVATE_FRAMEWORKS = PrintKit
+cpconnectord_FILES = main.m CloudPrintAPIClient.m GoogleOAuth2Client.m CloudPrintIncrementalStore.m CloudPrintXPCBridge.m CPPrinterProxy.m CPJob.m CPPrinter.m
+cpconnectord_CFLAGS = -fobjc-arc -I. -I./AFIncrementalStore/Submodule/AFIncrementalStore -I./AFNetworking/Submodule/AFNetworking -I./AFOAuth2Client/Submodule/
 cpconnectord_FRAMEWORKS = Security
+cpconnectord_PRIVATE_FRAMEWORKS = PrintKit
 cpconnectord_INSTALL_PATH = /usr/libexec
 
 include $(THEOS_MAKE_PATH)/tool.mk

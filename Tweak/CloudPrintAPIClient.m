@@ -7,11 +7,36 @@
 //
 
 #import "CloudPrintAPIClient.h"
+#import "GoogleOAuth2Client.h"
 
 #import "CPPrinter.h"
 #import "CPJob.h"
 
-static NSString * const CPAPIBaseURLString = @"https://www.google.com/cloudprint/";
+static NSString * const CloudPrintAPIBaseURLString = @"https://www.google.com/cloudprint/";
+
+@interface AFURLConnectionOperation (ModifyRequestAuthorization)
+@property (readwrite, nonatomic, strong) NSURLRequest *request;
+@end
+
+@implementation AFURLConnectionOperation (ModifyRequestAuthorization)
+@dynamic request;
+
+- (void)setValueForAuthorizationHeader:(NSString *)value {
+    NSMutableURLRequest *mutableURLRequest = [self.request mutableCopy];
+
+    NSMutableDictionary *existingHeaders = [NSMutableDictionary dictionaryWithDictionary:[self.request allHTTPHeaderFields]];
+    [existingHeaders setValue:value forKey:@"Authorization"];
+    [mutableURLRequest setAllHTTPHeaderFields:existingHeaders];
+
+    self.request = [mutableURLRequest copy];
+}
+
+@end
+
+@interface CloudPrintAPIClient ()
+@property (strong, nonatomic) GoogleOAuth2Client *authClient;
+@property (strong, nonatomic) AFOAuthCredential *credential;
+@end
 
 @implementation CloudPrintAPIClient
 
@@ -19,7 +44,7 @@ static NSString * const CPAPIBaseURLString = @"https://www.google.com/cloudprint
     static CloudPrintAPIClient *_sharedClient = nil;
     static dispatch_once_t onceToken;
     dispatch_once(&onceToken, ^{
-        _sharedClient = [[self alloc] initWithBaseURL:[NSURL URLWithString:CPAPIBaseURLString]];
+        _sharedClient = [[self alloc] initWithBaseURL:[NSURL URLWithString:CloudPrintAPIBaseURLString]];
     });
     
     return _sharedClient;
@@ -27,18 +52,85 @@ static NSString * const CPAPIBaseURLString = @"https://www.google.com/cloudprint
 
 - (id)initWithBaseURL:(NSURL *)url {
     if ((self = [super initWithBaseURL:url])) {
-        // Let's use JSON!
+        // JSON
         self.parameterEncoding = AFJSONParameterEncoding;
         [self registerHTTPOperationClass:[AFJSONRequestOperation class]];
         [self setDefaultHeader:@"Accept" value:@"application/json"];
         
-        [self setAuthorizationHeaderWithToken:@"ya29.AHES6ZQTqiv1cNHn-C0gZYjXKKL5Egqn-O5r9nqMHytWW78"];
+        // Google is stupid
+        [AFJSONRequestOperation addAcceptableContentTypes:[NSSet setWithObject:@"text/plain"]];
+
+        // Create OAuth client for authorization and load credential from keychain
+        self.authClient = [GoogleOAuth2Client clientWithClientID:@"485131505528.apps.googleusercontent.com" secret:@"k06D1ob6iELWL1WB0UviAKXX"];
+        self.credential = [AFOAuthCredential retrieveCredentialWithIdentifier:self.authClient.serviceProviderIdentifier];
         
-        [AFJSONRequestOperation addAcceptableContentTypes:[NSSet setWithObject:@"text/plain"]];        
+        // Monitor operation queues to automatically maintain dependencies
+        [self.operationQueue addObserver:self forKeyPath:@"operations" options:NSKeyValueObservingOptionNew context:nil];
+        [self.authClient.operationQueue addObserver:self forKeyPath:@"operations" options:NSKeyValueObservingOptionNew context:nil];
     }
     
     return self;
 }
+
+- (void)dealloc {
+    [self.authClient.operationQueue removeObserver:self forKeyPath:@"operations"];
+    [self.operationQueue removeObserver:self forKeyPath:@"operations"];
+}
+
+#pragma mark - Authorization
+
+- (void)observeValueForKeyPath:(NSString *)keyPath ofObject:(id)object change:(NSDictionary *)change context:(void *)context {
+    if ([keyPath isEqualToString:@"operations"]) {
+        // Automagically refresh an expired credential
+        if ([object isEqual:self.operationQueue] && self.credential.expired && self.authClient.operationQueue.operationCount == 0) {
+            [self.authClient authenticateUsingOAuthWithPath:@"token" refreshToken:self.credential.refreshToken success:^(AFOAuthCredential *credential) {
+                self.credential = credential;
+
+                NSLog(@"Successfully refreshed credential");
+
+                // Refresh authorization header in already queued operations
+                [self.operationQueue.operations enumerateObjectsUsingBlock:^(NSOperation *operation, NSUInteger idx, BOOL *stop) {
+                    if ([operation isKindOfClass:[AFURLConnectionOperation class]]) {
+                        [(AFURLConnectionOperation *)operation setValueForAuthorizationHeader:[self defaultValueForHeader:@"Authorization"]];
+                    }
+                }];
+
+            } failure:^(NSError *error) {
+                NSLog(@"Unable to refresh credential (%@)", error.userInfo[NSLocalizedDescriptionKey]);
+            }];
+        }
+
+        NSArray *operations = self.operationQueue.operations;
+        NSArray *authOperations = self.authClient.operationQueue.operations;
+
+        // Make all operations in API client queue dependent on ones in auth client queue, automagically
+        [operations enumerateObjectsUsingBlock:^(NSOperation *operation, NSUInteger idx, BOOL *stop) {
+            [authOperations enumerateObjectsUsingBlock:^(NSOperation *authOperation, NSUInteger idx, BOOL *stop) {
+                [operation addDependency:authOperation];
+            }];
+        }];
+    }
+}
+
+- (void)setCredential:(AFOAuthCredential *)credential {
+    _credential = credential;
+    [AFOAuthCredential storeCredential:_credential withIdentifier:self.authClient.serviceProviderIdentifier];
+    [self setAuthorizationHeaderWithCredential:_credential];
+}
+
+// Borrowed from AFOAuth2Client
+- (void)setAuthorizationHeaderWithCredential:(AFOAuthCredential *)credential {
+    [self setAuthorizationHeaderWithToken:credential.accessToken ofType:credential.tokenType];
+}
+
+// Borrowed from AFOAuth2Client
+- (void)setAuthorizationHeaderWithToken:(NSString *)token ofType:(NSString *)type {
+    if ([[type lowercaseString] isEqualToString:@"bearer"]) {
+        [self setDefaultHeader:@"Authorization" value:[NSString stringWithFormat:@"Bearer %@", token]];
+    }
+}
+
+#pragma mark - Executing Requests
 
 - (AFHTTPRequestOperation *)HTTPRequestOperationWithRequest:(NSURLRequest *)urlRequest success:(void (^)(AFHTTPRequestOperation *, id))success failure:(void (^)(AFHTTPRequestOperation *, NSError *))failure {
     void (^wrappedSuccess)(AFHTTPRequestOperation *, id) = ^(AFHTTPRequestOperation *operation, id responseObject) {
@@ -51,12 +143,6 @@ static NSString * const CPAPIBaseURLString = @"https://www.google.com/cloudprint
     };
     
     return [super HTTPRequestOperationWithRequest:urlRequest success:wrappedSuccess failure:failure];
-}
-
-#pragma mark - Authorization
-
-- (void)setAuthorizationHeaderWithToken:(NSString *)token {
-    [self setDefaultHeader:@"Authorization" value:[NSString stringWithFormat:@"Bearer %@", token]];
 }
 
 #pragma mark - Parsing Responses
@@ -118,17 +204,15 @@ static NSString * const CPAPIBaseURLString = @"https://www.google.com/cloudprint
         attributes[@"printerDescription"] = representation[@"description"];
         attributes[@"proxy"] = representation[@"proxy"];
         attributes[@"status"] = representation[@"status"];
+
+        NSDictionary *possibleStatuses = @{
+            @"ONLINE" : @(CPConnectionStatusOnline),
+            @"OFFLINE" : @(CPConnectionStatusOffline),
+            @"DORMANT" : @(CPConnectionStatusDormant)
+        };
         
-        NSString *statusRepresentation = representation[@"connectionStatus"];
-        NSNumber *connectionStatus = @(CPConnectionStatusUnknown);
-        
-        if ([statusRepresentation isEqualToString:@"ONLINE"]) {
-            connectionStatus = @(CPConnectionStatusOnline);
-        } else if ([statusRepresentation isEqualToString:@"OFFLINE"]) {
-            connectionStatus = @(CPConnectionStatusOffline);
-        } else if ([statusRepresentation isEqualToString:@"DORMANT"]) {
-            connectionStatus = @(CPConnectionStatusDormant);
-        }
+        NSNumber *connectionStatus = possibleStatuses[representation[@"connectionStatus"]];
+        connectionStatus = connectionStatus ?: @(CPConnectionStatusUnknown);
         
         attributes[@"connectionStatus"] = connectionStatus;
         
@@ -138,23 +222,16 @@ static NSString * const CPAPIBaseURLString = @"https://www.google.com/cloudprint
         attributes[@"contentType"] = representation[@"contentType"];
         attributes[@"message"] = representation[@"message"];
         attributes[@"created"] = [NSDate dateWithTimeIntervalSince1970:[representation[@"createTime"] doubleValue]];
-        attributes[@"updated"] = [NSDate dateWithTimeIntervalSince1970:[representation[@"updateTime"] doubleValue]];
-                
-        NSString *statusRepresentation = representation[@"status"];
-        NSNumber *jobStatus = @(CPJobStatusUnknown);
         
-        if ([statusRepresentation isEqualToString:@"QUEUED"]) {
-            jobStatus = @(CPJobStatusQueued);
-        } else if ([statusRepresentation isEqualToString:@"IN_PROGRESS"]) {
-            jobStatus = @(CPJobStatusInProgress);
-        } else if ([statusRepresentation isEqualToString:@"DONE"]) {
-            jobStatus = @(CPJobStatusDone);
-        } else if ([statusRepresentation isEqualToString:@"ERROR"]) {
-            jobStatus = @(CPJobStatusError);
-        }
-        
-        [attributes  removeObjectForKey:@"updated"];
-        
+        NSDictionary *possibleStatuses = @{
+            @"QUEUED" : @(CPJobStatusQueued),
+            @"IN_PROGRESS" : @(CPJobStatusInProgress),
+            @"DONE" : @(CPJobStatusDone),
+            @"ERROR" : @(CPJobStatusError)
+        };
+        NSNumber *jobStatus = possibleStatuses[representation[@"status"]];
+        jobStatus = jobStatus ?: @(CPJobStatusUnknown);
+
         attributes[@"status"] = jobStatus;
     }
     

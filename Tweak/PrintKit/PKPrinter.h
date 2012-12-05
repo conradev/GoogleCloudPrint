@@ -1,5 +1,10 @@
 #import <Foundation/NSObject.h>
 
+extern NSString const *PKFileTypeKey;
+extern NSString const *PKFileTypePDF;
+extern NSString const *PKFileTypeJPEG;
+extern NSString const *PKFileTypePNG;
+
 @interface PKPrinter : NSObject {
 	NSString* name;
 	int type;
@@ -74,7 +79,7 @@
 -(int)startJob:(id)arg1 ofType:(id)arg2;
 -(struct _ipp_s*)createRequest:(id)arg1 ofType:(id)arg2 url:(id)arg3;
 -(struct _ipp_s*)getPrinterAttributes;
--(int)sendData:(void *)arg1 ofLength:(int)arg2;
+-(int)sendData:(const char *)arg1 ofLength:(int)arg2;
 -(int)finishJob;
 -(int)finalizeJob:(int)arg1;
 -(int)abortJob;

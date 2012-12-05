@@ -83,7 +83,7 @@
     
     NSString *filePath = [[NSBundle mainBundle] pathForResource:@"Test" ofType:@"pdf"];
     CPJob *job = [NSEntityDescription insertNewObjectForEntityForName:@"Job" inManagedObjectContext:context];
-    job.title = @"This is a test!";
+    job.title = @"TestJob";
     job.printer = printer;
     job.fileData = [NSData dataWithContentsOfFile:filePath];
     job.contentType = @"application/pdf";

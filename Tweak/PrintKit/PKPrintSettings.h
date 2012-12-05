@@ -20,4 +20,3 @@
 - (id)settingsDict;
 
 @end
-

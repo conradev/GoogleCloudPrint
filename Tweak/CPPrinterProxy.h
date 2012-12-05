@@ -12,9 +12,7 @@
 
 @interface CPPrinterProxy : PKPrinter <NSSecureCoding>
 
-@property (retain, nonatomic, getter=__cloudprint_identifier, setter=__cloudprint_set_identifier:) NSString *cloudprintID;
-
-+ (BOOL)supportsSecureCoding;
+@property (retain, nonatomic) NSString *cloudprintID;
 
 - (id)initWithPrinter:(CPPrinter *)printer;
 

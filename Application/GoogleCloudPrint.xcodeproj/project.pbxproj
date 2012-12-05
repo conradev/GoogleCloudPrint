@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		D00D2CF4166D7F9C00040C4F /* GoogleOAuth2Client.m in Sources */ = {isa = PBXBuildFile; fileRef = D00D2CF3166D7F9C00040C4F /* GoogleOAuth2Client.m */; };
 		D0124C18165B0E030025542B /* AFIncrementalStore.m in Sources */ = {isa = PBXBuildFile; fileRef = D0124C15165B0E030025542B /* AFIncrementalStore.m */; };
 		D0124C19165B0E030025542B /* AFRESTClient.m in Sources */ = {isa = PBXBuildFile; fileRef = D0124C17165B0E030025542B /* AFRESTClient.m */; };
 		D0124C24165B0E1D0025542B /* AFHTTPClient.m in Sources */ = {isa = PBXBuildFile; fileRef = D0124C1C165B0E1D0025542B /* AFHTTPClient.m */; };
@@ -33,6 +34,8 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		D00D2CF2166D7F9C00040C4F /* GoogleOAuth2Client.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = GoogleOAuth2Client.h; path = ../../Tweak/GoogleOAuth2Client.h; sourceTree = "<group>"; };
+		D00D2CF3166D7F9C00040C4F /* GoogleOAuth2Client.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = GoogleOAuth2Client.m; path = ../../Tweak/GoogleOAuth2Client.m; sourceTree = "<group>"; };
 		D0124C14165B0E020025542B /* AFIncrementalStore.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = AFIncrementalStore.h; path = ../../Tweak/AFIncrementalStore/Submodule/AFIncrementalStore/AFIncrementalStore.h; sourceTree = "<group>"; };
 		D0124C15165B0E030025542B /* AFIncrementalStore.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = AFIncrementalStore.m; path = ../../Tweak/AFIncrementalStore/Submodule/AFIncrementalStore/AFIncrementalStore.m; sourceTree = "<group>"; };
 		D0124C16165B0E030025542B /* AFRESTClient.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = AFRESTClient.h; path = ../../Tweak/AFIncrementalStore/Submodule/AFIncrementalStore/AFRESTClient.h; sourceTree = "<group>"; };
@@ -185,6 +188,8 @@
 			children = (
 				D0124C28165B0E330025542B /* CloudPrintAPIClient.h */,
 				D0124C29165B0E330025542B /* CloudPrintAPIClient.m */,
+				D00D2CF2166D7F9C00040C4F /* GoogleOAuth2Client.h */,
+				D00D2CF3166D7F9C00040C4F /* GoogleOAuth2Client.m */,
 				D0124C2A165B0E330025542B /* CloudPrintIncrementalStore.h */,
 				D0124C2B165B0E330025542B /* CloudPrintIncrementalStore.m */,
 				D0124C2C165B0E330025542B /* CPJob.h */,
@@ -273,6 +278,7 @@
 				D0124C36165B0E7D0025542B /* CPJob.m in Sources */,
 				D0124C37165B0E7D0025542B /* CPPrinter.m in Sources */,
 				D0A44F18166ADA8F008DBC4F /* AFOAuth2Client.m in Sources */,
+				D00D2CF4166D7F9C00040C4F /* GoogleOAuth2Client.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
