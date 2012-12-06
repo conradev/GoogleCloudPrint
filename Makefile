@@ -1,5 +1,5 @@
-TARGET=iphone:clang:latest:6.0
-ARCHS=armv7
+TARGET = iphone:clang:latest:6.0
+ARCHS = armv7
 
 SUBPROJECTS = Tweak
 

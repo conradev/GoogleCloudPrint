@@ -1,3 +1,5 @@
+TARGET_CODESIGN_FLAGS = -SEntitlements.plist
+
 include theos/makefiles/common.mk
 
 TWEAK_NAME = CloudPrintConnector
