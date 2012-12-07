@@ -16,7 +16,7 @@ int main(int argc, char **argv, char **envp) {
     
     NSLog(@"Service starting...");
     
-    // Run listener
+    // Run listeners using bridge
     CloudPrintXPCBridge *bridge = [[CloudPrintXPCBridge alloc] initWithManagedObjectContext:managedObjectContext];
     NSXPCListener *printerListener = [[NSXPCListener alloc] initWithMachServiceName:@"org.thebigboss.cpconnector.printers"];
     NSXPCListener *authListener = [[NSXPCListener alloc] initWithMachServiceName:@"org.thebigboss.cpconnector.authorization"];

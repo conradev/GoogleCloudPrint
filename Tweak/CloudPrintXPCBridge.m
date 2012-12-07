@@ -10,8 +10,9 @@
 #import <objc/runtime.h>
 
 #import "CloudPrintXPCBridge.h"
-#import "CPPrinterServiceDelegate.h"
 
+#import "CloudPrintAPIClient.h"
+#import "CPPrinterServiceDelegate.h"
 #import "CPPrinter.h"
 #import "CPPrinterProxy.h"
 
@@ -116,7 +117,7 @@
         [exportedInterface setClasses:acceptableClasses forSelector:@selector(fetchPrintersWithReply:) argumentIndex:0 ofReply:YES];
         newConnection.exportedInterface = exportedInterface;
     } else if ([listener isEqual:self.authListener]) {
-
+        newConnection.exportedInterface = [NSXPCInterface interfaceWithProtocol:@protocol(CPAuthenticationService)];
     }
 
     __weak NSXPCConnection *weakConnection = newConnection;
@@ -137,7 +138,7 @@
     return YES;
 }
 
-#pragma mark - CloudPrintDataSource
+#pragma mark - CPPrinterService
 
 - (void)fetchPrintersWithReply:(void (^)(NSSet *))replyBlock {
     NSFetchRequest *request = [[NSFetchRequest alloc] initWithEntityName:@"Printer"];
@@ -146,7 +147,7 @@
     replyBlock(proxiesFromModels([NSSet setWithArray:printers]));
 }
 
-#pragma mark - CloudPrintServiceDelegate
+#pragma mark - CPPrinterServiceDelegate
 
 - (void)managedObjectContextObjectsDidChange:(NSNotification *)note {
 
@@ -175,6 +176,35 @@
             [serviceDelegate cloudprintServiceDeletedPrinters:proxiesFromModels(deleted)];
         }
     }];
+}
+
+#pragma mark - CPAuthenticationService
+
+- (void)authenticateWithCode:(NSString *)code redirectURI:(NSString *)redirectURI reply:(void (^)(BOOL success, NSError *error))returnBlock {
+    CloudPrintAPIClient *client = [CloudPrintAPIClient sharedClient];
+    
+    [client authenticateWithCode:code redirectURI:redirectURI success:^() {
+        returnBlock(YES, nil);
+    } failure:^(NSError *error) {
+        returnBlock(NO, error);
+    }];
+
+}
+
+- (void)validateCredentialWithReply:(void (^)(BOOL success, NSError *error))returnBlock {
+    CloudPrintAPIClient *client = [CloudPrintAPIClient sharedClient];
+    
+    [client verifyCredentialWithSuccess:^() {
+        returnBlock(YES, nil);
+    } failure:^(NSError *error) {
+        returnBlock(NO, error);
+    }];
+}
+
+- (void)deleteCredential {
+    CloudPrintAPIClient *client = [CloudPrintAPIClient sharedClient];
+
+    [client deleteCredential];
 }
 
 @end

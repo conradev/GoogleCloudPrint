@@ -15,6 +15,13 @@
 - (void)fetchPrintersWithReply:(void (^)(NSSet *))returnBlock;
 @end
 
+@protocol CPAuthenticationService <NSObject>
+@required
+- (void)authenticateWithCode:(NSString *)code redirectURI:(NSString *)redirectURI reply:(void (^)(BOOL success, NSError *error))returnBlock;
+- (void)validateCredentialWithReply:(void (^)(BOOL success, NSError *error))returnBlock;
+- (void)deleteCredential;
+@end
+
 @interface CloudPrintXPCBridge : NSObject <NSXPCListenerDelegate, CPPrinterService>
 
 @property (strong, readonly, nonatomic) NSManagedObjectContext *context;

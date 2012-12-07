@@ -14,12 +14,14 @@
 
 + (CloudPrintAPIClient *)sharedClient;
 
-- (void)verifyCredentialWithSuccess:(void (^)(AFOAuthCredential *))success
+- (void)verifyCredentialWithSuccess:(void (^)())success
                             failure:(void (^)(NSError *))failure;
 
 - (void)authenticateWithCode:(NSString *)code
                  redirectURI:(NSString *)uri
-                     success:(void (^)(AFOAuthCredential *))success
+                     success:(void (^)())success
                      failure:(void (^)(NSError *))failure;
+
+- (void)deleteCredential;
 
 @end

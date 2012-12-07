@@ -132,7 +132,7 @@ static NSString * const CloudPrintAPIBaseURLString = @"https://www.google.com/cl
 
 #pragma mark - Authorization (OAuth2 Client)
 
-- (void)refreshCredentialWithSuccess:(void (^)(AFOAuthCredential *))success
+- (void)refreshCredentialWithSuccess:(void (^)())success
                              failure:(void (^)(NSError *))failure
 {
     void (^wrappedSuccess)(AFOAuthCredential *) = ^(AFOAuthCredential *credential) {
@@ -156,14 +156,14 @@ static NSString * const CloudPrintAPIBaseURLString = @"https://www.google.com/cl
     self.operationQueue.suspended = YES;
 }
 
-- (void)verifyCredentialWithSuccess:(void (^)(AFOAuthCredential *))success
+- (void)verifyCredentialWithSuccess:(void (^)())success
                             failure:(void (^)(NSError *))failure
 {
     void (^wrappedSuccess)(AFOAuthCredential *) = ^(AFOAuthCredential *credential) {
         NSLog(@"Successfully verified credential");
 
         if (success) {
-            success(self.credential);
+            success();
         }
     };
 
@@ -181,7 +181,7 @@ static NSString * const CloudPrintAPIBaseURLString = @"https://www.google.com/cl
 
 - (void)authenticateWithCode:(NSString *)code
                  redirectURI:(NSString *)uri
-                     success:(void (^)(AFOAuthCredential *))success
+                     success:(void (^)())success
                      failure:(void (^)(NSError *))failure
 {
     void (^wrappedSuccess)(AFOAuthCredential *) = ^(AFOAuthCredential *credential) {
@@ -189,7 +189,7 @@ static NSString * const CloudPrintAPIBaseURLString = @"https://www.google.com/cl
         self.credential = credential;
 
         if (success) {
-            success(self.credential);
+            success();
         }
     };
 
@@ -203,6 +203,10 @@ static NSString * const CloudPrintAPIBaseURLString = @"https://www.google.com/cl
     [self.authClient authenticateUsingOAuthWithCode:code redirectURI:uri success:wrappedSuccess failure:wrappedFailure];
     
     self.operationQueue.suspended = YES;
+}
+
+- (void)deleteCredential {
+    self.credential = nil;
 }
 
 #pragma mark - Executing Requests
