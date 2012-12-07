@@ -9,19 +9,19 @@
 #import <Foundation/NSXPCConnection.h>
 
 #import <PrintKit/PKPrinterBrowser.h>
-#import "CloudPrintServiceDelegate.h"
+#import "CPPrinterServiceDelegate.h"
 
 #import "CloudPrintXPCBridge.h"
 #import "CPPrinterProxy.h"
 
-@interface CloudPrintServiceDelegateProxy : NSObject <CloudPrintServiceDelegate>
-@property (assign, nonatomic) id<CloudPrintServiceDelegate> realDelegate;
+@interface CPPrinterServiceDelegateProxy : NSObject <CPPrinterServiceDelegate>
+@property (assign, nonatomic) id<CPPrinterServiceDelegate> realDelegate;
 @end
-@implementation CloudPrintServiceDelegateProxy
+@implementation CPPrinterServiceDelegateProxy
 - (id)forwardingTargetForSelector:(SEL)aSelector { return _realDelegate; }
 @end
 
-@interface PKPrinterBrowser (CloudPrintConnector) <CloudPrintServiceDelegate>
+@interface PKPrinterBrowser (CloudPrintConnector) <CPPrinterServiceDelegate>
 @property (strong, nonatomic, getter=__cloudprint_connection, setter=__cloudprint_set_connection:) NSXPCConnection *cloudprintConnection;
 @property (strong, nonatomic, getter=__cloudprint_printers, setter=__cloudprint_set_printers:) NSMutableDictionary *cloudprintPrinters;
 @end
@@ -34,23 +34,23 @@ static char connectionKey, printersKey;
 
 - (id)initWithDelegate:(id)delegate {
     if ((self = %orig)) {
-        NSXPCConnection *connection = [[NSXPCConnection alloc] initWithMachServiceName:@"org.thebigboss.cpconnector" options:0x0];
+        NSXPCConnection *connection = [[NSXPCConnection alloc] initWithMachServiceName:@"org.thebigboss.cpconnector.printers" options:0x0];
         
         NSSet *acceptableClasses = [NSSet setWithObjects:[NSSet class], [CPPrinterProxy class], nil];
         
         // This is to break a retain cycle
         // `self` retains `connection` and `connection` retains `exportedObject`
-        CloudPrintServiceDelegateProxy *delegateProxy = [[CloudPrintServiceDelegateProxy alloc] init];
+        CPPrinterServiceDelegateProxy *delegateProxy = [[CPPrinterServiceDelegateProxy alloc] init];
         delegateProxy.realDelegate = self;
         connection.exportedObject = delegateProxy;
         
-        NSXPCInterface *exportedInterface = [NSXPCInterface interfaceWithProtocol:@protocol(CloudPrintServiceDelegate)];
+        NSXPCInterface *exportedInterface = [NSXPCInterface interfaceWithProtocol:@protocol(CPPrinterServiceDelegate)];
         [exportedInterface setClasses:acceptableClasses forSelector:@selector(cloudprintServiceInsertedPrinters:) argumentIndex:0 ofReply:NO];
         [exportedInterface setClasses:acceptableClasses forSelector:@selector(cloudprintServiceUpdatedPrinters:) argumentIndex:0 ofReply:NO];
         [exportedInterface setClasses:acceptableClasses forSelector:@selector(cloudprintServiceDeletedPrinters:) argumentIndex:0 ofReply:NO];
         connection.exportedInterface = exportedInterface;
 
-        NSXPCInterface *remoteInterface = [NSXPCInterface interfaceWithProtocol:@protocol(CloudPrintService)];
+        NSXPCInterface *remoteInterface = [NSXPCInterface interfaceWithProtocol:@protocol(CPPrinterService)];
         [remoteInterface setClasses:acceptableClasses forSelector:@selector(fetchPrintersWithReply:) argumentIndex:0 ofReply:YES];
         connection.remoteObjectInterface = remoteInterface;
         
@@ -58,7 +58,7 @@ static char connectionKey, printersKey;
         self.cloudprintConnection = connection;
         
         // Get remote object
-        id<CloudPrintService> service = [connection remoteObjectProxy];
+        id<CPPrinterService> service = [connection remoteObjectProxy];
         [service fetchPrintersWithReply:^(NSSet *printers) {
             [self cloudprintServiceInsertedPrinters:printers];
         }];
@@ -149,5 +149,5 @@ static char connectionKey, printersKey;
 %ctor {
     %init;
 
-    class_addProtocol(%c(PKPrinterBrowser), @protocol(CloudPrintServiceDelegate));
+    class_addProtocol(%c(PKPrinterBrowser), @protocol(CPPrinterService));
 }

@@ -7,17 +7,23 @@
 //
 
 #import <Foundation/NSXPCConnection.h>
+#import <objc/runtime.h>
 
 #import "CloudPrintXPCBridge.h"
-#import "CloudPrintServiceDelegate.h"
+#import "CPPrinterServiceDelegate.h"
 
 #import "CPPrinter.h"
 #import "CPPrinterProxy.h"
 
 @interface CloudPrintXPCBridge () {
     BOOL justKeepSwimming;
+    NSSet *(^proxiesFromModels)(NSSet *);
 }
 @property (strong, nonatomic) NSMutableSet *connections;
+
+@property (strong, nonatomic) NSXPCListener *printerListener;
+@property (strong, nonatomic) NSXPCListener *authListener;
+
 @end
 
 @implementation CloudPrintXPCBridge
@@ -26,6 +32,15 @@
     if ((self = [super init])) {
         _context = context;
         _connections = [NSMutableSet set];
+
+        proxiesFromModels = ^(NSSet *printers) {
+            NSMutableSet *proxies = [NSMutableSet set];
+            [printers enumerateObjectsUsingBlock:^(CPPrinter *printer, BOOL *stop) {
+                CPPrinterProxy *proxy = [[CPPrinterProxy alloc] initWithPrinter:printer];
+                [proxies addObject:proxy];
+            }];
+            return [NSSet setWithSet:proxies];
+        };
 
         [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(managedObjectContextObjectsDidChange:) name:NSManagedObjectContextObjectsDidChangeNotification object:_context];
     }
@@ -39,10 +54,16 @@
 
 #pragma mark - NSRunLoop
 
-- (void)runWithListener:(NSXPCListener *)listener {
-    listener.delegate = self;
+- (void)runWithPrinterListener:(NSXPCListener *)printerListener authorizationListener:(NSXPCListener *)authListener {
+    self.printerListener = printerListener;
+    self.authListener = authListener;
 
-    [listener resume];
+    NSArray *listeners = @[ self.printerListener, self.authListener ];
+
+    [listeners enumerateObjectsUsingBlock:^(NSXPCListener *listener, NSUInteger idx, BOOL *stop) {
+        listener.delegate = self;
+        [listener resume];
+    }];
 
     NSRunLoop *runLoop = [NSRunLoop currentRunLoop];
 
@@ -52,7 +73,12 @@
         [runLoop runMode:NSDefaultRunLoopMode beforeDate:[runLoop limitDateForMode:NSDefaultRunLoopMode]];
     }
 
-    [listener invalidate];
+    [listeners enumerateObjectsUsingBlock:^(NSXPCListener *listener, NSUInteger idx, BOOL *stop) {
+        [listener invalidate];
+    }];
+
+    self.printerListener = nil;
+    self.authListener = nil;
 }
 
 - (void)stopListener {
@@ -75,18 +101,23 @@
     NSLog(@"Canceling any scheduled stops.");
     [self performSelectorOnMainThread:@selector(stopTimeout) withObject:nil waitUntilDone:YES];
 
-    NSSet *acceptableClasses = [NSSet setWithObjects:[NSSet class], [CPPrinterProxy class], nil];
-
-    NSXPCInterface *remoteInterface = [NSXPCInterface interfaceWithProtocol:@protocol(CloudPrintServiceDelegate)];
-    [remoteInterface setClasses:acceptableClasses forSelector:@selector(cloudprintServiceInsertedPrinters:) argumentIndex:0 ofReply:NO];
-    [remoteInterface setClasses:acceptableClasses forSelector:@selector(cloudprintServiceUpdatedPrinters:) argumentIndex:0 ofReply:NO];
-    [remoteInterface setClasses:acceptableClasses forSelector:@selector(cloudprintServiceDeletedPrinters:) argumentIndex:0 ofReply:NO];
-    newConnection.remoteObjectInterface = remoteInterface;
-
-    NSXPCInterface *exportedInterface = [NSXPCInterface interfaceWithProtocol:@protocol(CloudPrintService)];
-    [exportedInterface setClasses:acceptableClasses forSelector:@selector(fetchPrintersWithReply:) argumentIndex:0 ofReply:YES];
-    newConnection.exportedInterface = exportedInterface;
     newConnection.exportedObject = self;
+
+    if ([listener isEqual:self.printerListener]) {
+        NSSet *acceptableClasses = [NSSet setWithObjects:[NSSet class], [CPPrinterProxy class], nil];
+
+        NSXPCInterface *remoteInterface = [NSXPCInterface interfaceWithProtocol:@protocol(CPPrinterServiceDelegate)];
+        [remoteInterface setClasses:acceptableClasses forSelector:@selector(cloudprintServiceInsertedPrinters:) argumentIndex:0 ofReply:NO];
+        [remoteInterface setClasses:acceptableClasses forSelector:@selector(cloudprintServiceUpdatedPrinters:) argumentIndex:0 ofReply:NO];
+        [remoteInterface setClasses:acceptableClasses forSelector:@selector(cloudprintServiceDeletedPrinters:) argumentIndex:0 ofReply:NO];
+        newConnection.remoteObjectInterface = remoteInterface;
+
+        NSXPCInterface *exportedInterface = [NSXPCInterface interfaceWithProtocol:@protocol(CPPrinterService)];
+        [exportedInterface setClasses:acceptableClasses forSelector:@selector(fetchPrintersWithReply:) argumentIndex:0 ofReply:YES];
+        newConnection.exportedInterface = exportedInterface;
+    } else if ([listener isEqual:self.authListener]) {
+
+    }
 
     __weak NSXPCConnection *weakConnection = newConnection;
     newConnection.invalidationHandler = ^() {
@@ -112,13 +143,7 @@
     NSFetchRequest *request = [[NSFetchRequest alloc] initWithEntityName:@"Printer"];
     NSArray *printers = [_context executeFetchRequest:request error:nil];
 
-    NSMutableSet *proxies = [NSMutableSet set];
-    [printers enumerateObjectsUsingBlock:^(CPPrinter *printer, NSUInteger idx, BOOL *stop) {
-        CPPrinterProxy *proxy = [[CPPrinterProxy alloc] initWithPrinter:printer];
-        [proxies addObject:proxy];
-    }];
-
-    replyBlock([NSSet setWithSet:proxies]);
+    replyBlock(proxiesFromModels([NSSet setWithArray:printers]));
 }
 
 #pragma mark - CloudPrintServiceDelegate
@@ -132,17 +157,13 @@
     NSSet *updated = [note.userInfo[NSUpdatedObjectsKey] objectsPassingTest:printerTest];
     NSSet *deleted = [note.userInfo[NSDeletedObjectsKey] objectsPassingTest:printerTest];
 
-    NSSet *(^proxiesFromModels)(NSSet *) = ^(NSSet *printers) {
-        NSMutableSet *proxies = [NSMutableSet set];
-        [printers enumerateObjectsUsingBlock:^(CPPrinter *printer, BOOL *stop) {
-            CPPrinterProxy *proxy = [[CPPrinterProxy alloc] initWithPrinter:printer];
-            [proxies addObject:proxy];
-        }];
-        return [NSSet setWithSet:proxies];
-    };
+    NSSet *printerConnections = [self.connections objectsPassingTest:^(NSXPCConnection *connection, BOOL *stop) {
+        Protocol *remoteProtocol = connection.remoteObjectInterface.protocol;
+        return protocol_isEqual(remoteProtocol, @protocol(CPPrinterServiceDelegate));
+    }];
 
-    [self.connections enumerateObjectsUsingBlock:^(NSXPCConnection *connection, BOOL *stop) {
-        id<CloudPrintServiceDelegate> serviceDelegate = [connection remoteObjectProxy];
+    [printerConnections enumerateObjectsUsingBlock:^(NSXPCConnection *connection, BOOL *stop) {
+        id<CPPrinterServiceDelegate> serviceDelegate = [connection remoteObjectProxy];
         
         if (inserted.count) {
             [serviceDelegate cloudprintServiceInsertedPrinters:proxiesFromModels(inserted)];

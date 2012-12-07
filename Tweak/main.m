@@ -18,8 +18,9 @@ int main(int argc, char **argv, char **envp) {
     
     // Run listener
     CloudPrintXPCBridge *bridge = [[CloudPrintXPCBridge alloc] initWithManagedObjectContext:managedObjectContext];
-    NSXPCListener *listener = [[NSXPCListener alloc] initWithMachServiceName:@"org.thebigboss.cpconnector"];
-    [bridge runWithListener:listener];
+    NSXPCListener *printerListener = [[NSXPCListener alloc] initWithMachServiceName:@"org.thebigboss.cpconnector.printers"];
+    NSXPCListener *authListener = [[NSXPCListener alloc] initWithMachServiceName:@"org.thebigboss.cpconnector.authorization"];
+    [bridge runWithPrinterListener:printerListener authorizationListener:authListener];
     
     NSLog(@"Service stopping...");
     

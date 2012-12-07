@@ -25,7 +25,7 @@
          assignedFileDataType = "public.make-source">
       </FileRef>
       <FileRef
-         location = "group:Tweak/CloudPrintServiceDelegate.h">
+         location = "group:Tweak/CPPrinterServiceDelegate.h">
       </FileRef>
       <FileRef
          location = "group:Tweak/PKPrinterBrowser.x"

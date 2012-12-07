@@ -6,12 +6,14 @@
 	<string>org.thebigboss.cpconnector</string>
 	<key>MachServices</key>
 	<dict>
-		<key>org.thebigboss.cpconnector</key>
+		<key>org.thebigboss.cpconnector.printers</key>
+		<true/>
+		<key>org.thebigboss.cpconnector.authorization</key>
 		<true/>
 	</dict>
 	<key>ProgramArguments</key>
 	<array>
-        <string>/usr/libexec/cpconnectord</string>
+		<string>/usr/libexec/cpconnectord</string>
 	</array>
 	<key>UserName</key>
 	<string>mobile</string>

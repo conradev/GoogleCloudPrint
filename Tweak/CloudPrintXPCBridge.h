@@ -10,17 +10,17 @@
 
 @protocol NSXPCListenerDelegate;
 
-@protocol CloudPrintService <NSObject>
+@protocol CPPrinterService <NSObject>
 @required
 - (void)fetchPrintersWithReply:(void (^)(NSSet *))returnBlock;
 @end
 
-@interface CloudPrintXPCBridge : NSObject <NSXPCListenerDelegate, CloudPrintService>
+@interface CloudPrintXPCBridge : NSObject <NSXPCListenerDelegate, CPPrinterService>
 
 @property (strong, readonly, nonatomic) NSManagedObjectContext *context;
 
 - (id)initWithManagedObjectContext:(NSManagedObjectContext *)context;
 
-- (void)runWithListener:(NSXPCListener *)listener;
+- (void)runWithPrinterListener:(NSXPCListener *)printerListener authorizationListener:(NSXPCListener *)authListener;
 
 @end
