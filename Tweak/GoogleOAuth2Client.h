@@ -31,4 +31,7 @@
                                success:(void (^)(AFOAuthCredential *))success
                                failure:(void (^)(NSError *))failure;
 
+- (NSURL *)authorizationURLWithScope:(NSString *)scope
+                         redirectURI:(NSURL *)redirectURI;
+
 @end

@@ -12,7 +12,10 @@
 #import "CPPrinter.h"
 #import "CPJob.h"
 
-static NSString * const CloudPrintAPIBaseURLString = @"https://www.google.com/cloudprint/";
+static NSString * const kCloudPrintAPIBaseURLString = @"https://www.google.com/cloudprint/";
+static NSString * const kCloudPrintAPIClientID = @"485131505528.apps.googleusercontent.com";
+static NSString * const kCloudPrintAPIClientSecret = @"k06D1ob6iELWL1WB0UviAKXX";
+static NSString * const kCloudPrintAPIScopeString = @"https://www.googleapis.com/auth/cloudprint";
 
 @interface AFURLConnectionOperation (ModifyRequestAuthorization)
 @property (readwrite, nonatomic, strong) NSURLRequest *request;
@@ -44,7 +47,7 @@ static NSString * const CloudPrintAPIBaseURLString = @"https://www.google.com/cl
     static CloudPrintAPIClient *_sharedClient = nil;
     static dispatch_once_t onceToken;
     dispatch_once(&onceToken, ^{
-        _sharedClient = [[self alloc] initWithBaseURL:[NSURL URLWithString:CloudPrintAPIBaseURLString]];
+        _sharedClient = [[self alloc] initWithBaseURL:[NSURL URLWithString:kCloudPrintAPIBaseURLString]];
     });
     
     return _sharedClient;
@@ -61,7 +64,7 @@ static NSString * const CloudPrintAPIBaseURLString = @"https://www.google.com/cl
         [AFJSONRequestOperation addAcceptableContentTypes:[NSSet setWithObject:@"text/plain"]];
 
         // Create OAuth client for authorization and load credential from keychain
-        self.authClient = [GoogleOAuth2Client clientWithClientID:@"485131505528.apps.googleusercontent.com" secret:@"k06D1ob6iELWL1WB0UviAKXX"];
+        self.authClient = [GoogleOAuth2Client clientWithClientID:kCloudPrintAPIClientID secret:kCloudPrintAPIClientSecret];
         self.credential = [AFOAuthCredential retrieveCredentialWithIdentifier:self.authClient.serviceProviderIdentifier];
         
         // Monitor operation queues to automagically maintain dependencies
@@ -101,6 +104,10 @@ static NSString * const CloudPrintAPIBaseURLString = @"https://www.google.com/cl
             self.operationQueue.suspended = NO;
         }
     }
+}
+
+- (void)deleteCredential {
+    self.credential = nil;
 }
 
 - (void)setCredential:(AFOAuthCredential *)credential {
@@ -205,8 +212,8 @@ static NSString * const CloudPrintAPIBaseURLString = @"https://www.google.com/cl
     self.operationQueue.suspended = YES;
 }
 
-- (void)deleteCredential {
-    self.credential = nil;
+- (NSURL *)authorizationURLWithRedirectURI:(NSURL *)uri {
+    return [self.authClient authorizationURLWithScope:kCloudPrintAPIScopeString redirectURI:uri];
 }
 
 #pragma mark - Executing Requests

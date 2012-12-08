@@ -180,24 +180,24 @@
 
 #pragma mark - CPAuthenticationService
 
-- (void)authenticateWithCode:(NSString *)code redirectURI:(NSString *)redirectURI reply:(void (^)(BOOL success, NSError *error))returnBlock {
+- (void)authenticateWithCode:(NSString *)code redirectURI:(NSString *)redirectURI reply:(void (^)(BOOL success, NSError *error))replyBlock {
     CloudPrintAPIClient *client = [CloudPrintAPIClient sharedClient];
     
     [client authenticateWithCode:code redirectURI:redirectURI success:^() {
-        returnBlock(YES, nil);
+        replyBlock(YES, nil);
     } failure:^(NSError *error) {
-        returnBlock(NO, error);
+        replyBlock(NO, error);
     }];
 
 }
 
-- (void)validateCredentialWithReply:(void (^)(BOOL success, NSError *error))returnBlock {
+- (void)validateCredentialWithReply:(void (^)(BOOL success, NSError *error))replyBlock {
     CloudPrintAPIClient *client = [CloudPrintAPIClient sharedClient];
     
     [client verifyCredentialWithSuccess:^() {
-        returnBlock(YES, nil);
+        replyBlock(YES, nil);
     } failure:^(NSError *error) {
-        returnBlock(NO, error);
+        replyBlock(NO, error);
     }];
 }
 
@@ -205,6 +205,12 @@
     CloudPrintAPIClient *client = [CloudPrintAPIClient sharedClient];
 
     [client deleteCredential];
+}
+
+- (void)authorizationURLWithRedirectURI:(NSURL *)uri reply:(void (^)(NSURL *))replyBlock {
+    CloudPrintAPIClient *client = [CloudPrintAPIClient sharedClient];
+    
+    replyBlock([client authorizationURLWithRedirectURI:uri]);
 }
 
 @end

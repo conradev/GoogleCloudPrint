@@ -17,12 +17,13 @@
 
 @protocol CPAuthenticationService <NSObject>
 @required
-- (void)authenticateWithCode:(NSString *)code redirectURI:(NSString *)redirectURI reply:(void (^)(BOOL success, NSError *error))returnBlock;
-- (void)validateCredentialWithReply:(void (^)(BOOL success, NSError *error))returnBlock;
+- (void)authenticateWithCode:(NSString *)code redirectURI:(NSString *)redirectURI reply:(void (^)(BOOL success, NSError *error))replyBlock;
+- (void)validateCredentialWithReply:(void (^)(BOOL success, NSError *error))replyBlock;
 - (void)deleteCredential;
+- (void)authorizationURLWithRedirectURI:(NSURL *)uri reply:(void (^)(NSURL *))replyBlock;
 @end
 
-@interface CloudPrintXPCBridge : NSObject <NSXPCListenerDelegate, CPPrinterService>
+@interface CloudPrintXPCBridge : NSObject <NSXPCListenerDelegate, CPPrinterService, CPAuthenticationService>
 
 @property (strong, readonly, nonatomic) NSManagedObjectContext *context;
 

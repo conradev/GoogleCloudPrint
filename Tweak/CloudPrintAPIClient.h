@@ -24,4 +24,6 @@
 
 - (void)deleteCredential;
 
+- (NSURL *)authorizationURLWithRedirectURI:(NSURL *)uri;
+
 @end
