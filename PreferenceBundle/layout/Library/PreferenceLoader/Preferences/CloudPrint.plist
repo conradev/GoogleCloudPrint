@@ -1,0 +1,8 @@
+{
+	entry = {
+		bundle = CloudPrintSettings;
+		cell = PSLinkCell;
+		isController = 1;
+		label = "Cloud Print Connector";
+	};
+}

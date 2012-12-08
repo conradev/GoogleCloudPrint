@@ -1,5 +1,5 @@
 Package: org.thebigboss.cpconnector
-Depends: firmware (>= 6.0), mobilesubstrate
+Depends: firmware (>= 6.0), mobilesubstrate, preferenceloader (>= 2.0.5)
 Name: CloudPrintConnector
 Version: 1.0
 Architecture: iphoneos-arm
