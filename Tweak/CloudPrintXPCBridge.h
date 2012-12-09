@@ -20,7 +20,7 @@
 - (void)authenticateWithCode:(NSString *)code redirectURI:(NSString *)redirectURI reply:(void (^)(BOOL success, NSError *error))replyBlock;
 - (void)validateCredentialWithReply:(void (^)(BOOL success, NSError *error))replyBlock;
 - (void)deleteCredential;
-- (void)authorizationURLWithRedirectURI:(NSURL *)uri reply:(void (^)(NSURL *))replyBlock;
+- (void)authorizationURLWithRedirectURI:(NSString *)uri reply:(void (^)(NSURL *))replyBlock;
 @end
 
 @interface CloudPrintXPCBridge : NSObject <NSXPCListenerDelegate, CPPrinterService, CPAuthenticationService>

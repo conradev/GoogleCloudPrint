@@ -106,10 +106,6 @@ static NSString * const kCloudPrintAPIScopeString = @"https://www.googleapis.com
     }
 }
 
-- (void)deleteCredential {
-    self.credential = nil;
-}
-
 - (void)setCredential:(AFOAuthCredential *)credential {
     _credential = credential;
 
@@ -147,7 +143,7 @@ static NSString * const kCloudPrintAPIScopeString = @"https://www.googleapis.com
         self.credential = credential;
 
         if (success) {
-            success(self.credential);
+            success();
         }
     };
 
@@ -212,7 +208,13 @@ static NSString * const kCloudPrintAPIScopeString = @"https://www.googleapis.com
     self.operationQueue.suspended = YES;
 }
 
-- (NSURL *)authorizationURLWithRedirectURI:(NSURL *)uri {
+- (void)deleteCredential {
+    NSLog(@"Successfully deleted credential");
+
+    self.credential = nil;
+}
+
+- (NSURL *)authorizationURLWithRedirectURI:(NSString *)uri {
     return [self.authClient authorizationURLWithScope:kCloudPrintAPIScopeString redirectURI:uri];
 }
 

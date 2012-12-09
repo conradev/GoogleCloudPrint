@@ -32,6 +32,6 @@
                                failure:(void (^)(NSError *))failure;
 
 - (NSURL *)authorizationURLWithScope:(NSString *)scope
-                         redirectURI:(NSURL *)redirectURI;
+                         redirectURI:(NSString *)uri;
 
 @end

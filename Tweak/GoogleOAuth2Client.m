@@ -124,10 +124,10 @@ static NSString * const GoogleOAuth2BaseURLString = @"https://accounts.google.co
 
 
 - (NSURL *)authorizationURLWithScope:(NSString *)scope
-                         redirectURI:(NSURL *)uri
+                         redirectURI:(NSString *)uri
 {
     NSMutableDictionary *parameters = [NSMutableDictionary dictionaryWithDictionary:@{ @"response_type" : @"code", @"client_id" : self.clientID }];
-    [parameters setValue:[uri absoluteString] forKey:@"redirect_uri"];
+    [parameters setValue:uri forKey:@"redirect_uri"];
     [parameters setValue:scope forKey:@"scope"];
     
     NSURLRequest *request = [self requestWithMethod:@"GET" path:@"auth" parameters:parameters];

@@ -207,7 +207,7 @@
     [client deleteCredential];
 }
 
-- (void)authorizationURLWithRedirectURI:(NSURL *)uri reply:(void (^)(NSURL *))replyBlock {
+- (void)authorizationURLWithRedirectURI:(NSString *)uri reply:(void (^)(NSURL *))replyBlock {
     CloudPrintAPIClient *client = [CloudPrintAPIClient sharedClient];
     
     replyBlock([client authorizationURLWithRedirectURI:uri]);
