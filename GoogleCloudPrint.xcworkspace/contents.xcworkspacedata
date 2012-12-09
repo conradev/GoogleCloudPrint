@@ -7,6 +7,10 @@
    <Group
       location = "container:"
       name = "Tweak">
+      <FileRef
+         location = "group:Tweak/Makefile"
+         assignedFileDataType = "public.make-source">
+      </FileRef>
       <Group
          location = "group:Tweak/PrintKit"
          name = "PrintKit">
@@ -21,8 +25,11 @@
          </FileRef>
       </Group>
       <FileRef
-         location = "group:Tweak/Makefile"
-         assignedFileDataType = "public.make-source">
+         location = "group:Tweak/CPPrinterProxy.h">
+      </FileRef>
+      <FileRef
+         location = "group:Tweak/CPPrinterProxy.m"
+         assignedFileDataType = "public.objective-c-source">
       </FileRef>
       <FileRef
          location = "group:Tweak/CPPrinterServiceDelegate.h">
@@ -39,14 +46,55 @@
          assignedFileDataType = "public.objective-c-source">
       </FileRef>
       <FileRef
-         location = "group:Tweak/CPPrinterProxy.h">
-      </FileRef>
-      <FileRef
-         location = "group:Tweak/CPPrinterProxy.m"
-         assignedFileDataType = "public.objective-c-source">
-      </FileRef>
-      <FileRef
          location = "group:Tweak/main.m">
+      </FileRef>
+   </Group>
+   <Group
+      location = "container:"
+      name = "PreferenceBundle">
+      <FileRef
+         location = "group:PreferenceBundle/Makefile"
+         assignedFileDataType = "public.make-source">
+      </FileRef>
+      <Group
+         location = "container:"
+         name = "Preferences">
+         <FileRef
+            location = "group:PreferenceBundle/Preferences/PSController.h">
+         </FileRef>
+         <FileRef
+            location = "group:PreferenceBundle/Preferences/PSSpecifier.h">
+         </FileRef>
+         <FileRef
+            location = "group:PreferenceBundle/Preferences/PSRootController.h">
+         </FileRef>
+         <FileRef
+            location = "group:PreferenceBundle/Preferences/PSViewController.h">
+         </FileRef>
+         <FileRef
+            location = "group:PreferenceBundle/Preferences/PSSetupController.h">
+         </FileRef>
+         <FileRef
+            location = "group:PreferenceBundle/Preferences/PSListController.h">
+         </FileRef>
+      </Group>
+      <FileRef
+         location = "group:PreferenceBundle/CloudPrintSettingsController.h">
+      </FileRef>
+      <FileRef
+         location = "group:PreferenceBundle/CloudPrintSettingsController.m">
+      </FileRef>
+      <FileRef
+         location = "group:PreferenceBundle/OAuth2AuthorizationController.h">
+      </FileRef>
+      <FileRef
+         location = "group:PreferenceBundle/OAuth2AuthorizationController.m">
+      </FileRef>
+      <FileRef
+         location = "group:PreferenceBundle/OAuth2AuthorizationSetup.h">
+      </FileRef>
+      <FileRef
+         location = "group:PreferenceBundle/OAuth2AuthorizationSetup.m">
       </FileRef>
    </Group>
 </Workspace>
