@@ -1,5 +1,5 @@
 //
-//  CloudPrintServiceDelegate.h
+//  CPPrinterServiceDelegate.h
 //  GoogleCloudPrint
 //
 //  Created by Conrad Kramer on 10/21/12.
