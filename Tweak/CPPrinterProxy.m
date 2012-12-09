@@ -17,7 +17,7 @@
  *  does not allow for per-file flags, this code must support both ARC and no ARC, conditionally.
  */
 
-@interface CPPrinterProxy (Internal)
+@interface CPPrinterProxy ()
 @property (retain, nonatomic) NSString *cloudprintDisplayName;
 @property (retain, nonatomic) NSString *cloudprintDescription;
 @end
