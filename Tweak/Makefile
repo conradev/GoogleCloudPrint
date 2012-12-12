@@ -1,5 +1,3 @@
-TARGET_CODESIGN_FLAGS = -SEntitlements.plist
-
 include theos/makefiles/common.mk
 
 TWEAK_NAME = CloudPrintConnector
@@ -14,6 +12,7 @@ cpconnectord_CFLAGS = -fobjc-arc -I. -I./AFIncrementalStore/Submodule/AFIncremen
 cpconnectord_FRAMEWORKS = Security SystemConfiguration
 cpconnectord_PRIVATE_FRAMEWORKS = PrintKit
 cpconnectord_INSTALL_PATH = /usr/libexec
+cpconnectord_CODESIGN_FLAGS = -SEntitlements.plist
 
 include $(THEOS_MAKE_PATH)/tool.mk
 include $(THEOS_MAKE_PATH)/tweak.mk
