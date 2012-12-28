@@ -1,3 +1,5 @@
+This project integrates Google's Cloud Print service into Apple's existing AirPrint functionality. For more information, read the [blog post](http://kramerapps.com/blog/post/38090565883/integrate-cloud-print-ios).
+
 # Getting Started
 
 1. Install [Xcode 4.5](https://itunes.apple.com/us/app/xcode/id497799835) which includes the iPhone SDK
