@@ -1,6 +1,6 @@
 include theos/makefiles/common.mk
 
-CLASS_DIR = Submodule/
+CLASS_DIR = Submodule/AFOAuth2Client
 
 SUBPROJECT_NAME = AFNetworking
 AFNetworking_FILES = $(CLASS_DIR)/AFOAuth2Client.m 

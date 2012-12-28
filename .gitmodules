@@ -6,4 +6,4 @@
 	url = git://github.com/AFNetworking/AFIncrementalStore.git
 [submodule "AFOAuth2Client"]
 	path = Tweak/AFOAuth2Client/Submodule
-	url = git://github.com/conradev/AFOAuth2Client.git
+	url = git://github.com/AFNetworking/AFOAuth2Client.git
