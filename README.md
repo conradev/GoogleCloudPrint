@@ -1,6 +1,8 @@
+## Google Cloud Print on iOS
+
 This project integrates Google's Cloud Print service into Apple's existing AirPrint functionality. For more information, read the [blog post](http://kramerapps.com/blog/post/38090565883/integrate-cloud-print-ios).
 
-It uses [AFIncrementalStore](https://github.com/AFNetworking/AFIncrementalStore), [AFOAuth2Client](https://github.com/AFNetworking/AFOAuth2Client) and [AFNetworking](https://github.com/AFNetworking/AFNetworking) to communicate with the Cloud Print API, and [Theos](https://github.com/DHowett/theos) as its build system.
+The project uses [AFIncrementalStore](https://github.com/AFNetworking/AFIncrementalStore), [AFOAuth2Client](https://github.com/AFNetworking/AFOAuth2Client) and [AFNetworking](https://github.com/AFNetworking/AFNetworking) to communicate with the Cloud Print API, and [Theos](https://github.com/DHowett/theos) as its build system.
 
 ## Getting Started
 
