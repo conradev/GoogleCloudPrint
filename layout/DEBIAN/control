@@ -4,8 +4,6 @@ Name: CloudPrintConnector
 Version: 1.0
 Architecture: iphoneos-arm
 Description: Connects you to Google Cloud Print!
-Homepage: http://kramerapps.com/cydia/graviboard/
-Depiction: http://kramerapps.com/cydia/graviboard/
 Maintainer: BigBoss <bigboss@thebigboss.org>
 Author: Conrad Kramer <support@kramerapps.com>
 Sponsor: thebigboss.org <http://thebigboss.org>
