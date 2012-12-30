@@ -1,4 +1,4 @@
-## Google Cloud Print on iOS
+# Google Cloud Print on iOS
 
 This project integrates Google's Cloud Print service into Apple's existing AirPrint functionality. For more information, read the [blog post](http://kramerapps.com/blog/post/38090565883/integrate-cloud-print-ios).
 
